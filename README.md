@@ -1,4 +1,4 @@
-# ⟁ Prism — Medical Intelligence
+#  Prism — Medical Intelligence
 
 > **Your health report, in words you understand.**
 
@@ -13,11 +13,11 @@ Every year, over **2 billion lab reports** are handed to patients who have no id
 Most people stare at abbreviations like HbA1c, eGFR, LDL, MCHC — and either panic or put the paper in a drawer. The worry stays. The confusion stays. The questions never get asked.
 
 **The people most affected:**
-- 👵 Elderly patients who didn't grow up with medical literacy
-- 🌍 1.5 billion people who don't speak medical English
-- 🏘️ Rural communities with limited access to follow-up care
-- 👨‍👩‍👧 Immigrant families navigating foreign healthcare systems
-- 💰 Anyone who can't afford a second opinion
+-  Elderly patients who didn't grow up with medical literacy
+-  1.5 billion people who don't speak medical English
+-  Rural communities with limited access to follow-up care
+-  Immigrant families navigating foreign healthcare systems
+-  Anyone who can't afford a second opinion
 
 Doctor appointments are 12 minutes long. There's no time to explain every value. Patients leave with more questions than answers — and nowhere to go.
 
@@ -29,14 +29,14 @@ Doctor appointments are 12 minutes long. There's no time to explain every value.
 
 Upload any lab report or doctor's note — PDF, image, or photo of a handwritten note. In under 15 seconds, Prism:
 
-- ✅ Reads every value using Gemini's native multimodal vision
-- ✅ Explains everything in warm, plain everyday language
-- ✅ Shows you a health score out of 100
-- ✅ Highlights which organs and body systems are affected
-- ✅ Tells you exactly what to do next
-- ✅ Translates everything into your language and reads it aloud
-- ✅ Generates questions to bring to your next doctor's appointment
-- ✅ Deletes everything when you close the tab
+-  Reads every value using Gemini's native multimodal vision
+-  Explains everything in warm, plain everyday language
+-  Shows you a health score out of 100
+-  Highlights which organs and body systems are affected
+-  Tells you exactly what to do next
+-  Translates everything into your language and reads it aloud
+-  Generates questions to bring to your next doctor's appointment
+-  Deletes everything when you close the tab
 
 **Zero jargon. Zero storage. Zero fear.**
 
@@ -67,25 +67,25 @@ SCAN ──→ RISK ──→ GUIDE
 
 ## Key Features
 
-### 🧠 Explainable AI
+** Explainable AI **
 Every flagged value has a "Why?" button that calls Gemini to explain in plain words exactly why that value was flagged, what it means for that specific patient's combination of results, and what they can do about it.
 
-### 🫀 Interactive Body Map
+** Interactive Body Map **
 Lab values are mapped to body systems. Organs glow based on severity — red for critical, amber for attention needed, green for healthy. Click any organ to see the specific values affecting it.
 
-### 📊 Health Score Out of 100
+** Health Score Out of 100 **
 Not just a number — a breakdown across 4 body systems with plain English notes for each. Animated gauge, category bars, and an encouraging message no matter the score.
 
-### 🌍 100+ Language Support
+** 100+ Language Support **
 Full translation powered by Gemini 2.5 Flash. Voice readout powered by ElevenLabs — emotionally tuned based on severity. Calmer and steadier for critical findings, warmer for healthy results.
 
-### 👨‍👩‍👧 Explain to My Family
+** Explain to My Family **
 One click generates a simplified version written for someone with zero medical background — something to screenshot and send to a worried parent or partner.
 
-### 📄 Download Your Summary
+** Download Your Summary **
 Generate a clean PDF of your health score, plain language summary, action plan, and doctor questions — to bring to your next appointment.
 
-### 🔒 Zero Storage Architecture
+** Zero Storage Architecture **
 Nothing is logged. Nothing is retained. Your report is read in your browser session, analyzed by Gemini, and the response comes back to you. When you close the tab, everything is gone permanently.
 
 ---

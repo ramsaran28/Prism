@@ -1,6 +1,7 @@
 "use client";
 
 import type { GuideResult } from "@/lib/types";
+import { SectionInfoButton } from "./SectionInfoButton";
 
 interface ActionPlanCardProps {
   guide: GuideResult | null;
@@ -10,26 +11,49 @@ export function ActionPlanCard({ guide }: ActionPlanCardProps) {
   if (!guide) return null;
 
   return (
-    <section className="card-surface px-6 py-5">
-      <h2 className="type-h2 mb-4">Your action plan</h2>
-      <ol className="mb-6 list-decimal space-y-3 pl-5">
+    <section className="card-surface">
+      <div className="section-title-row mb-5">
+        <h2 className="type-h2">Your action plan</h2>
+        <SectionInfoButton
+          modalTitle="About your action plan"
+          ariaLabel="About your action plan"
+        >
+          <p>
+            Your action plan gives you simple, practical steps based on your
+            specific results.
+          </p>
+          <p>
+            These are gentle suggestions — things like dietary changes,
+            supplements to discuss with your doctor, or lifestyle adjustments.
+          </p>
+          <p>
+            The questions at the bottom are designed to help you have a better
+            conversation at your next appointment. Print them or screenshot them
+            to bring along.
+          </p>
+          <p>
+            Always follow your doctor&apos;s advice over anything shown here.
+          </p>
+        </SectionInfoButton>
+      </div>
+      <div className="mb-6">
         {guide.steps.map((step, i) => (
-          <li key={i} className="action-plan-step -mx-2 rounded-element px-2 py-1">
+          <div key={i} className="action-plan-step">
             {step}
-          </li>
+          </div>
         ))}
-      </ol>
+      </div>
       {guide.questions.length > 0 && (
         <>
           <p className="type-card-title mb-3">Questions for your doctor</p>
-          <ol className="space-y-3">
+          <div>
             {guide.questions.map((q, i) => (
-              <li key={i} className="action-plan-question">
-                <span className="mr-2 font-medium text-accent">{i + 1}.</span>
+              <div key={i} className="action-plan-question">
+                <span className="mr-2 font-medium text-info">{i + 1}.</span>
                 {q}
-              </li>
+              </div>
             ))}
-          </ol>
+          </div>
         </>
       )}
     </section>

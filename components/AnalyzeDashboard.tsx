@@ -11,6 +11,8 @@ import { SummaryCard } from "./SummaryCard";
 import { ActionPlanCard } from "./ActionPlanCard";
 import { FamilyExplain } from "./FamilyExplain";
 import { LanguageSection } from "./LanguageSection";
+import { HealthScoreCard } from "./HealthScoreCard";
+import { InfoModalProvider } from "./InfoModalContext";
 import { PrivacyFooter } from "./PrivacyFooter";
 import { runAgentsInParallel } from "@/lib/agents/orchestrator";
 import { normalizeLabValues } from "@/lib/labValueNames";
@@ -22,6 +24,7 @@ import type {
   GuideResult,
   LabValue,
   RiskResult,
+  ScoreResult,
   SeverityLevel,
 } from "@/lib/types";
 
@@ -31,11 +34,27 @@ const initialStatuses: Record<AgentId, AgentStatus> = {
   explain: "waiting",
   translate: "waiting",
   guide: "waiting",
+  score: "waiting",
 };
 
 export function AnalyzeDashboard() {
   const router = useRouter();
   const started = useRef(false);
+  const topRef = useRef<HTMLDivElement>(null);
+  const riskRef = useRef<HTMLDivElement>(null);
+  const scoreRef = useRef<HTMLDivElement>(null);
+  const explainRef = useRef<HTMLDivElement>(null);
+  const guideRef = useRef<HTMLDivElement>(null);
+  const translateRef = useRef<HTMLDivElement>(null);
+
+  const sectionRefs = {
+    risk: riskRef,
+    score: scoreRef,
+    explain: explainRef,
+    guide: guideRef,
+    translate: translateRef,
+  };
+
   const [statuses, setStatuses] = useState(initialStatuses);
   const [values, setValues] = useState<LabValue[]>([]);
   const [severity, setSeverity] = useState<SeverityLevel | null>(null);
@@ -46,6 +65,7 @@ export function AnalyzeDashboard() {
   const [activeLang, setActiveLang] = useState("English (US)");
   const [translateLoading, setTranslateLoading] = useState(false);
   const [guide, setGuide] = useState<GuideResult | null>(null);
+  const [healthScore, setHealthScore] = useState<ScoreResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const setAgent = useCallback((id: AgentId, status: AgentStatus) => {
@@ -67,6 +87,7 @@ export function AnalyzeDashboard() {
     setSummary("");
     setTranslation(null);
     setGuide(null);
+    setHealthScore(null);
     setError(null);
 
     await runAgentsInParallel(session, {
@@ -81,6 +102,7 @@ export function AnalyzeDashboard() {
       onExplainChunk: setSummary,
       onExplainEnd: () => setSummaryStreaming(false),
       onGuideResult: setGuide,
+      onScoreResult: setHealthScore,
       onTranslation: (text, lang) => {
         setTranslation(text);
         setActiveLang(lang);
@@ -116,59 +138,83 @@ export function AnalyzeDashboard() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AgentStatusPanel statuses={statuses} />
+    <InfoModalProvider>
+      <div className="flex min-h-screen bg-background">
+        <AgentStatusPanel
+          statuses={statuses}
+          sectionRefs={sectionRefs}
+          topRef={topRef}
+        />
 
-      <main className="min-w-0 flex-1 px-4 py-8 md:px-8">
-        <div className="mx-auto flex max-w-5xl flex-col gap-6">
+        <div className="flex min-w-0 flex-1 flex-col">
           <AnalyzeTopBar />
 
-          {error && (
-            <p className="rounded-element border border-danger/30 bg-danger-muted px-4 py-3 text-sm text-danger">
-              {error}
-            </p>
-          )}
+          <main className="flex-1 px-7 py-5">
+            <div className="mx-auto max-w-5xl">
+              <div ref={topRef} data-agent-section="scan" className="scroll-mt-20" />
 
-          <SeverityBanner severity={severity} />
+              {error && (
+                <p className="mb-5 rounded-xl border border-danger/30 bg-danger-muted px-4 py-3 text-sm text-danger">
+                  {error}
+                </p>
+              )}
 
-          {values.length > 0 && (
-            <ValueAnalysisSection
-              values={values}
-              flaggedValues={risk?.flaggedValues ?? []}
-            />
-          )}
+              <div ref={riskRef} data-agent-section="risk" className="scroll-mt-20">
+                <SeverityBanner severity={severity} />
+              </div>
 
-          {values.length > 0 && <BodySystemsMap values={values} risk={risk} />}
+              <div ref={scoreRef} data-agent-section="score" className="scroll-mt-20">
+                <HealthScoreCard score={healthScore} />
+              </div>
 
-          <SummaryCard text={summary} streaming={summaryStreaming} />
+              {values.length > 0 && (
+                <ValueAnalysisSection
+                  values={values}
+                  flaggedValues={risk?.flaggedValues ?? []}
+                />
+              )}
 
-          <ActionPlanCard guide={guide} />
+              {values.length > 0 && (
+                <BodySystemsMap values={values} risk={risk} />
+              )}
 
-          <FamilyExplain
-            summary={summary}
-            disabled={summaryStreaming || !summary}
-          />
+              <div ref={explainRef} data-agent-section="explain" className="scroll-mt-20">
+                <SummaryCard text={summary} streaming={summaryStreaming} />
+              </div>
 
-          <LanguageSection
-            translation={translation}
-            activeLanguage={activeLang}
-            onSwitch={handleLanguageSwitch}
-            loading={translateLoading}
-          />
+              <div ref={guideRef} data-agent-section="guide" className="scroll-mt-20">
+                <ActionPlanCard guide={guide} />
+              </div>
 
-          <div className="flex justify-center pt-4">
-            <button
-              type="button"
-              onClick={handleStartOver}
-              className="btn-start-over"
-            >
-              Start over
-            </button>
-          </div>
+              <FamilyExplain
+                summary={summary}
+                disabled={summaryStreaming || !summary}
+              />
 
-          <PrivacyFooter />
+              <div ref={translateRef} data-agent-section="translate" className="scroll-mt-20">
+                <LanguageSection
+                  translation={translation}
+                  activeLanguage={activeLang}
+                  onSwitch={handleLanguageSwitch}
+                  loading={translateLoading}
+                />
+              </div>
+
+              <div className="flex justify-center pt-4">
+                <button
+                  type="button"
+                  onClick={handleStartOver}
+                  className="btn-start-over"
+                >
+                  Start over
+                </button>
+              </div>
+
+              <PrivacyFooter />
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
+      </div>
+    </InfoModalProvider>
   );
 }

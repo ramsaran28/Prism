@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -19,6 +19,7 @@ import {
   toChartRows,
   type ChartRow,
 } from "@/lib/valueMetrics";
+import { FlagExplainModal } from "./FlagExplainModal";
 
 const ROW_HEIGHT = 52;
 const BAR_SIZE = 20;
@@ -26,6 +27,7 @@ const Y_AXIS_WIDTH = 180;
 
 interface LabValuesChartProps {
   values: LabValue[];
+  allValues?: LabValue[];
 }
 
 function wrapLabel(name: string): string[] {
@@ -63,7 +65,7 @@ function YAxisTick(props: {
                 : lineHeight / 2 + 4
           }
           textAnchor="end"
-          fill="#9896A8"
+          fill="#454760"
           fontSize={12}
           style={{ lineHeight: 1.4 }}
         >
@@ -84,7 +86,7 @@ function ChartTooltip({
   if (!active || !payload?.length) return null;
   const row = payload[0].payload;
   return (
-    <div className="max-w-xs rounded-element border border-border bg-overlay px-4 py-3 shadow-lg">
+    <div className="chart-tooltip max-w-xs">
       <p className="text-[13px] font-normal text-text-primary">
         {row.plainName} —{" "}
         <span className="value-mono">{row.valueLabel}</span>
@@ -115,23 +117,61 @@ function MetricCard({
         ? "text-warning"
         : "text-text-primary";
   return (
-    <div className="flex-1 rounded-element border border-border bg-input p-5 text-center">
+    <div className="metric-card flex-1">
       <p className={`metric-value ${valueClass}`}>{value}</p>
-      <p className="mt-1 text-xs text-text-secondary">{label}</p>
+      <p
+        className="mt-1"
+        style={{
+          fontSize: 12,
+          fontFamily: "var(--font-inter), Inter, sans-serif",
+          color: "#8B8FA8",
+        }}
+      >
+        {label}
+      </p>
     </div>
   );
 }
 
-export function LabValuesChart({ values }: LabValuesChartProps) {
+function ZoneLegend() {
+  return (
+    <div className="mb-4 flex flex-wrap gap-4 text-xs">
+      <span style={{ color: "#5B8DEF", fontWeight: 500 }}>Too Low</span>
+      <span style={{ color: "#00C896", fontWeight: 500 }}>Normal Zone</span>
+      <span style={{ color: "#F04060", fontWeight: 500 }}>Too High</span>
+    </div>
+  );
+}
+
+function relatedFlagged(current: LabValue, all: LabValue[]): LabValue[] {
+  return all
+    .filter(
+      (v) =>
+        v.status !== "normal" &&
+        (v.medicalName ?? v.name) !== (current.medicalName ?? current.name)
+    )
+    .slice(0, 3);
+}
+
+export function LabValuesChart({ values, allValues = [] }: LabValuesChartProps) {
+  const [modalValue, setModalValue] = useState<LabValue | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
   const chartData = useMemo(() => toChartRows(values), [values]);
   const domain = getChartDomain();
   const chartHeight = Math.max(chartData.length * ROW_HEIGHT, ROW_HEIGHT);
+  const sourceValues = allValues.length ? allValues : values;
 
   const total = values.length;
   const normalCount = values.filter((v) => v.status === "normal").length;
   const attentionCount = total - normalCount;
 
   if (!chartData.length) return null;
+
+  function openWhy(row: ChartRow) {
+    setModalValue(row);
+    setModalOpen(true);
+  }
 
   return (
     <div className="w-full">
@@ -145,8 +185,10 @@ export function LabValuesChart({ values }: LabValuesChartProps) {
         />
       </div>
 
+      <ZoneLegend />
+
       <div
-        className="lab-chart w-full p-6"
+        className="lab-chart relative w-full p-6"
         style={{ minHeight: chartHeight + 48 }}
       >
         <ResponsiveContainer width="100%" height={chartHeight}>
@@ -160,34 +202,34 @@ export function LabValuesChart({ values }: LabValuesChartProps) {
             <ReferenceArea
               x1={0}
               x2={20}
-              fill="#4D9FFF"
+              fill="#5B8DEF"
               fillOpacity={0.1}
               ifOverflow="extendDomain"
             />
             <ReferenceArea
               x1={20}
               x2={80}
-              fill="#00D4AA"
+              fill="#00C896"
               fillOpacity={0.08}
               ifOverflow="extendDomain"
             />
             <ReferenceArea
               x1={80}
               x2={100}
-              fill="#FF4D6A"
+              fill="#F04060"
               fillOpacity={0.1}
               ifOverflow="extendDomain"
             />
             <ReferenceLine
               x={20}
-              stroke="#4D9FFF"
+              stroke="#5B8DEF"
               strokeOpacity={0.35}
               strokeWidth={1}
               strokeDasharray="4 4"
             />
             <ReferenceLine
               x={80}
-              stroke="#FF4D6A"
+              stroke="#F04060"
               strokeOpacity={0.35}
               strokeWidth={1}
               strokeDasharray="4 4"
@@ -196,8 +238,8 @@ export function LabValuesChart({ values }: LabValuesChartProps) {
               type="number"
               domain={domain}
               ticks={[0, 50, 100]}
-              tick={{ fill: "#9896A8", fontSize: 11 }}
-              axisLine={{ stroke: "#1E1E2E" }}
+              tick={{ fill: "#454760", fontSize: 12 }}
+              axisLine={{ stroke: "#232536" }}
               tickLine={false}
               tickFormatter={(v) => CHART_AXIS_LABELS[v as number] ?? ""}
             />
@@ -228,7 +270,57 @@ export function LabValuesChart({ values }: LabValuesChartProps) {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+
+        <div
+          className="pointer-events-none absolute left-0 right-0"
+          style={{
+            top: 24,
+            paddingLeft: Y_AXIS_WIDTH + 12,
+            paddingRight: 24,
+          }}
+        >
+          {chartData.map((row) => (
+            <div
+              key={row.medicalName}
+              className="group flex items-center justify-end pointer-events-auto"
+              style={{ height: ROW_HEIGHT }}
+            >
+              {row.status !== "normal" && (
+                <button
+                  type="button"
+                  onClick={() => openWhy(row)}
+                  className="opacity-0 transition-opacity duration-150 ease-in-out group-hover:opacity-100"
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "var(--font-inter), Inter, sans-serif",
+                    fontWeight: 500,
+                    color: "#8B8FA8",
+                    background: "#16181F",
+                    border: "0.5px solid #232536",
+                    borderRadius: 99,
+                    padding: "3px 10px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Why?
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
+
+      <FlagExplainModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setModalValue(null);
+        }}
+        value={modalValue}
+        relatedFlagged={
+          modalValue ? relatedFlagged(modalValue, sourceValues) : []
+        }
+      />
     </div>
   );
 }

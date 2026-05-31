@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Shield, Upload } from "lucide-react";
 import { PrismLogo } from "@/components/PrismLogo";
-import { LanguageSelector } from "@/components/LanguageSelector";
 import { PrivacyFooter } from "@/components/PrivacyFooter";
 import { fileToBase64, saveSession } from "@/lib/session";
 
@@ -13,7 +12,6 @@ const ACCEPT = "application/pdf,image/jpeg,image/png,image/jpg";
 export default function HomePage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [language, setLanguage] = useState("English (US)");
   const [uploading, setUploading] = useState(false);
 
   async function handleFile(file: File) {
@@ -33,7 +31,7 @@ export default function HomePage() {
       saveSession({
         base64,
         mimeType: file.type,
-        language,
+        language: "English (US)",
         fileName: file.name,
       });
       router.push("/analyze");
@@ -70,12 +68,6 @@ export default function HomePage() {
           </div>
 
           <div className="mb-8 flex flex-col items-center gap-6">
-            <LanguageSelector
-              value={language}
-              onChange={setLanguage}
-              className="items-center"
-            />
-
             <input
               ref={inputRef}
               type="file"

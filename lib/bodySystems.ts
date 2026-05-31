@@ -118,24 +118,24 @@ export interface OrganStyle {
 }
 
 const GLOW_STYLES: Record<OrganVisualSeverity, OrganStyle> = {
-  hh: { fill: "#FF4D6A", fillOpacity: 0.42, stroke: "#FF4D6A", visual: "hh" },
-  ll: { fill: "#FF1744", fillOpacity: 0.42, stroke: "#FF1744", visual: "ll" },
+  hh: { fill: "#F04060", fillOpacity: 0.5, stroke: "#F04060", visual: "hh" },
+  ll: { fill: "#F04060", fillOpacity: 0.5, stroke: "#F04060", visual: "ll" },
   h_or_l: {
-    fill: "#F5A623",
-    fillOpacity: 0.38,
-    stroke: "#F5A623",
+    fill: "#F0A500",
+    fillOpacity: 0.45,
+    stroke: "#F0A500",
     visual: "h_or_l",
   },
   normal: {
-    fill: "#00D4AA",
-    fillOpacity: 0.28,
-    stroke: "#00D4AA",
+    fill: "#00C896",
+    fillOpacity: 0.35,
+    stroke: "#00C896",
     visual: "normal",
   },
   absent: {
-    fill: "#00D4AA",
-    fillOpacity: 0.1,
-    stroke: "#4E4C5E",
+    fill: "#232536",
+    fillOpacity: 0.6,
+    stroke: "#454760",
     visual: "absent",
   },
 };
@@ -312,13 +312,13 @@ export function getSimpleStatus(visual: OrganVisualSeverity): {
   switch (visual) {
     case "hh":
     case "ll":
-      return { label: "Critical", color: "#FF4D6A" };
+      return { label: "Critical", color: "#F04060" };
     case "h_or_l":
-      return { label: "Needs attention", color: "#F5A623" };
+      return { label: "Needs attention", color: "#F0A500" };
     case "normal":
-      return { label: "All good", color: "#00D4AA" };
+      return { label: "Healthy", color: "#00C896" };
     default:
-      return { label: "Not tested", color: "#4E4C5E" };
+      return { label: "Not tested", color: "#454760" };
   }
 }
 
@@ -364,6 +364,25 @@ export function getFlaggedValues(
   return system.values.filter(
     (v) => v.status !== "normal" || isRiskFlagged(v, flaggedValues)
   );
+}
+
+export function getMostCriticalFlaggedValue(
+  system: BodySystemState,
+  flaggedValues: { name: string }[]
+): LabValue | null {
+  const flagged = getFlaggedValues(system, flaggedValues);
+  if (!flagged.length) return null;
+
+  const rank = (v: LabValue) => {
+    if (system.visual === "hh" || system.visual === "ll") {
+      if (v.status === "high" || v.status === "low") return 0;
+    }
+    if (v.status === "high") return 1;
+    if (v.status === "low") return 2;
+    return 3;
+  };
+
+  return [...flagged].sort((a, b) => rank(a) - rank(b))[0];
 }
 
 export function getPersonalClosing(
@@ -414,44 +433,20 @@ const ANNOTATION_LAYOUT: Record<
     side: "left" | "right";
   }
 > = {
-  brain: { organX: 220, organY: 50, labelX: 12, labelY: 52, side: "left" },
-  heart: { organX: 198, organY: 150, labelX: 12, labelY: 150, side: "left" },
-  stomach: {
-    organX: 208,
-    organY: 220,
-    labelX: 12,
-    labelY: 220,
-    side: "left",
-  },
-  blood: { organX: 220, organY: 290, labelX: 12, labelY: 290, side: "left" },
-  thyroid: {
-    organX: 220,
-    organY: 98,
-    labelX: 428,
-    labelY: 98,
-    side: "right",
-  },
-  liver: { organX: 252, organY: 170, labelX: 428, labelY: 170, side: "right" },
-  kidneys: {
-    organX: 220,
-    organY: 254,
-    labelX: 428,
-    labelY: 254,
-    side: "right",
-  },
-  bones: { organX: 220, organY: 400, labelX: 428, labelY: 400, side: "right" },
+  brain: { organX: 140, organY: 44, labelX: 8, labelY: 44, side: "left" },
+  heart: { organX: 125, organY: 148, labelX: 8, labelY: 148, side: "left" },
+  stomach: { organX: 128, organY: 200, labelX: 8, labelY: 200, side: "left" },
+  blood: { organX: 140, organY: 190, labelX: 8, labelY: 240, side: "left" },
+  thyroid: { organX: 140, organY: 96, labelX: 272, labelY: 96, side: "right" },
+  liver: { organX: 168, organY: 183, labelX: 272, labelY: 183, side: "right" },
+  kidneys: { organX: 140, organY: 228, labelX: 272, labelY: 228, side: "right" },
+  bones: { organX: 140, organY: 420, labelX: 272, labelY: 420, side: "right" },
 };
 
-/** Front-view figure on the light illustration panel. */
+/** Custom SVG body diagram dimensions. */
 export const BODY_FIGURE = {
-  panelX: 86,
-  panelY: 10,
-  panelW: 268,
-  panelH: 540,
-  x: 92,
-  y: 14,
-  width: 256,
-  height: 532,
+  width: 280,
+  height: 560,
 };
 
 const LEFT_REGIONS: MapRegionId[] = ["brain", "heart", "stomach", "blood"];

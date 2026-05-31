@@ -6,9 +6,9 @@ import {
 } from "@/lib/labValueNames";
 
 export const STATUS_COLORS: Record<ValueStatus, string> = {
-  normal: "#00D4AA",
-  low: "#4D9FFF",
-  high: "#FF4D6A",
+  normal: "#00C896",
+  low: "#5B8DEF",
+  high: "#F04060",
 };
 
 export function parseNumericResult(result: string): number | null {

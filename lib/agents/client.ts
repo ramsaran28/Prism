@@ -1,5 +1,11 @@
 import { valuesWithPlainNames } from "@/lib/labValueNames";
-import type { GuideResult, LabValue, RiskResult, ScanResult } from "@/lib/types";
+import type {
+  GuideResult,
+  LabValue,
+  RiskResult,
+  ScanResult,
+  ScoreResult,
+} from "@/lib/types";
 import type { SessionPayload } from "@/lib/types";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -91,4 +97,22 @@ export async function streamExplainAgent(
   }
 
   return full;
+}
+
+export async function callScoreAgent(
+  values: LabValue[],
+  riskData: RiskResult
+): Promise<ScoreResult> {
+  const res = await fetch("/api/agents/score", {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify({
+      values: valuesWithPlainNames(values),
+      riskData,
+    }),
+  });
+  if (!res.ok) throw new Error("SCORE failed");
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data as ScoreResult;
 }

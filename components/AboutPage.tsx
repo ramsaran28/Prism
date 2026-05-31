@@ -1,195 +1,600 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowLeft,
   ArrowRight,
-  FileSearch,
-  Globe,
-  MessageCircle,
-  Scan,
-  AlertTriangle,
-  Languages,
-  Compass,
+  Clock,
+  FileX,
+  Globe2,
+  ShieldCheck,
 } from "lucide-react";
 import { PrismIcon } from "./PrismIcon";
+import { PrismLogo } from "./PrismLogo";
 
-const FEATURE_CARDS = [
+const PROBLEM_CARDS = [
   {
-    icon: FileSearch,
-    title: "Reads your report",
-    description:
-      "Upload any lab report or doctor's note. Prism reads it the way a doctor would — instantly, with no setup.",
+    icon: FileX,
+    title: "1 in 3 patients leave confused",
+    text: "Most people receive lab results with zero explanation. The report goes in a drawer, the worry stays in their head.",
   },
   {
-    icon: MessageCircle,
-    title: "Explains it simply",
-    description:
-      "No jargon. No abbreviations. Just plain words that tell you what's going on in your body and what actually matters.",
+    icon: Globe2,
+    title: "1.5 billion people don't speak medical English",
+    text: "Even fluent English speakers struggle with medical jargon. For the rest of the world, it's completely inaccessible.",
   },
   {
-    icon: Globe,
-    title: "Speaks your language",
-    description:
-      "Get your results explained in 100+ languages with a voice readout — so anyone can understand, anywhere in the world.",
+    icon: Clock,
+    title: "Doctor appointments are 12 minutes long",
+    text: "There's no time to explain every value. Patients leave with more questions than answers and nowhere to go.",
   },
 ] as const;
 
-const TECH_AGENTS = [
-  { icon: Scan, name: "Scan", desc: "reads every value from your report" },
-  { icon: AlertTriangle, name: "Risk", desc: "identifies what needs attention" },
-  { icon: MessageCircle, name: "Explain", desc: "writes your plain language summary" },
-  { icon: Languages, name: "Translate", desc: "converts to your language" },
-  { icon: Compass, name: "Guide", desc: "creates your personal action plan" },
+const AGENT_CARDS = [
+  {
+    number: "01",
+    name: "SCAN",
+    badgeColor: "#00C896",
+    description:
+      "Reads every value, unit, and reference range from your report using Gemini's vision — PDFs, images, even handwritten notes.",
+  },
+  {
+    number: "02",
+    name: "RISK",
+    badgeColor: "#00C896",
+    description:
+      "Identifies which values are outside normal range, scores severity, and calculates a confidence level for each finding.",
+  },
+  {
+    number: "03",
+    name: "EXPLAIN",
+    badgeColor: "#00C896",
+    description:
+      "Writes a plain language summary — warm, honest, jargon-free. Starts with what's good. Always.",
+  },
+  {
+    number: "04",
+    name: "TRANSLATE",
+    badgeColor: "#00C896",
+    description:
+      "Converts your summary into any of 100+ languages while keeping the same caring tone throughout.",
+  },
+  {
+    number: "05",
+    name: "GUIDE",
+    badgeColor: "#00C896",
+    description:
+      "Creates a personal action plan and generates questions to bring to your next doctor's appointment.",
+  },
+  {
+    number: "06",
+    name: "SCORE",
+    badgeColor: "#F0A500",
+    description:
+      "Calculates an overall health score out of 100 based on correlated markers — giving you one simple number to track over time.",
+  },
 ] as const;
+
+const TECH_PILLS = [
+  "Gemini 2.5 Flash",
+  "ElevenLabs Multilingual v2",
+  "Next.js 14",
+  "TypeScript",
+  "Tailwind CSS",
+  "Recharts",
+  "Vercel",
+  "100+ Languages",
+  "Zero Database",
+] as const;
+
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <p
+      className="mb-2 uppercase tracking-[1px]"
+      style={{
+        fontSize: 11,
+        fontFamily: "var(--font-inter), Inter, sans-serif",
+        color: "#00C896",
+        marginBottom: 8,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function AgentCard({
+  number,
+  name,
+  badgeColor,
+  description,
+}: (typeof AGENT_CARDS)[number]) {
+  return (
+    <div
+      className="flex gap-4"
+      style={{
+        background: "#16181F",
+        border: "0.5px solid #232536",
+        borderRadius: 12,
+        padding: "16px 20px",
+        marginBottom: 10,
+      }}
+    >
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+        style={{
+          background: `${badgeColor}18`,
+          color: badgeColor,
+          fontFamily: 'var(--font-mono), "JetBrains Mono", monospace',
+          fontSize: 12,
+          fontWeight: 500,
+        }}
+      >
+        {number}
+      </div>
+      <div>
+        <p
+          className="mb-1"
+          style={{
+            fontSize: 13,
+            fontFamily: "var(--font-inter), Inter, sans-serif",
+            fontWeight: 600,
+            color: "#EEEEF0",
+            letterSpacing: "0.5px",
+          }}
+        >
+          {name}
+        </p>
+        <p
+          style={{
+            fontSize: 14,
+            fontFamily: "var(--font-inter), Inter, sans-serif",
+            color: "#8B8FA8",
+            lineHeight: 1.75,
+          }}
+        >
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function AboutPage() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = requestAnimationFrame(() => setVisible(true));
+    document.documentElement.style.scrollBehavior = "smooth";
+    return () => {
+      cancelAnimationFrame(timer);
+      document.documentElement.style.scrollBehavior = "";
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-border bg-background/80">
-        <div className="mx-auto flex max-w-[720px] items-center justify-between px-6 py-5">
-          <Link href="/" className="flex items-center gap-2">
-            <PrismIcon size={20} />
-            <span className="logo-text">Prism</span>
+    <div
+      className="min-h-screen transition-opacity duration-300"
+      style={{ opacity: visible ? 1 : 0 }}
+    >
+      <header
+        style={{
+          borderBottom: "0.5px solid #232536",
+          padding: "16px 40px",
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <Link href="/">
+            <PrismLogo />
           </Link>
           <Link
-            href="/analyze"
-            className="text-sm text-text-secondary transition-colors hover:text-accent"
+            href="/"
+            className="flex items-center gap-2 transition-colors duration-150"
+            style={{
+              fontSize: 14,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              color: "#8B8FA8",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#EEEEF0";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "#8B8FA8";
+            }}
           >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
             Back to app
           </Link>
         </div>
       </header>
 
-      <article className="mx-auto max-w-[720px] px-6 py-12 md:py-[48px]">
-        <section className="mb-16 text-center">
-          <div className="mb-4 flex justify-center">
-            <PrismIcon size={40} />
+      <main
+        className="mx-auto"
+        style={{ maxWidth: 680, padding: "60px 24px" }}
+      >
+        {/* Section 1 — Hero */}
+        <section className="mb-16 flex flex-col items-center text-center">
+          <div className="mb-4">
+            <PrismIcon size={36} />
           </div>
-          <h1 className="font-display text-[32px] font-normal tracking-display-tight text-text-primary">
-            Prism
+          <h1
+            className="mb-6 whitespace-pre-line italic"
+            style={{
+              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontSize: 36,
+              fontWeight: 300,
+              fontStyle: "italic",
+              color: "#EEEEF0",
+              lineHeight: 1.25,
+            }}
+          >
+            Built for the person who just got{"\n"}a report they don&apos;t
+            understand.
           </h1>
-          <p className="type-landing-sub mt-3">
-            Your health report, in words you actually understand.
+          <p
+            className="mx-auto max-w-[520px]"
+            style={{
+              fontSize: 16,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              fontWeight: 300,
+              color: "#8B8FA8",
+              lineHeight: 1.8,
+            }}
+          >
+            That moment of confusion — staring at numbers and abbreviations,
+            not knowing if you should panic or ignore it — is what Prism was
+            built to fix.
           </p>
-          <div className="mx-auto mt-8 h-px max-w-xs bg-border" />
         </section>
 
+        {/* Section 2 — The Problem */}
         <section className="mb-16">
-          <h2 className="type-h2-italic mb-5">The problem we&apos;re solving</h2>
-          <div className="type-body space-y-4 text-[16px] text-[#aaaaaa]">
-            <p>
-              Every year, millions of people receive lab reports they don&apos;t
-              understand. The paper comes back full of abbreviations, reference
-              ranges, and numbers — and most people either panic, ignore it, or
-              call five different people trying to figure out what it means.
-            </p>
-            <p>
-              The people most affected are the ones who need clarity most —
-              elderly patients, people in rural areas, non-English speakers,
-              and anyone seeing a doctor for the first time. Medical literacy
-              shouldn&apos;t be a privilege.
-            </p>
-            <p>
-              And yet, the system hasn&apos;t changed. Reports are still written
-              for doctors, not patients.
-            </p>
-          </div>
-        </section>
-
-        <section className="mb-16">
-          <h2 className="type-h2 mb-6">What Prism does</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {FEATURE_CARDS.map(({ icon: Icon, title, description }) => (
-              <div key={title} className="card-surface px-5 py-5">
-                <Icon
-                  className="mb-3 h-6 w-6 text-accent"
-                  strokeWidth={1.5}
-                  aria-hidden
-                />
-                <h3 className="mb-2 text-sm font-medium text-text-primary">
-                  {title}
-                </h3>
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  {description}
+          <SectionLabel>THE PROBLEM</SectionLabel>
+          <h2
+            className="mb-6 italic"
+            style={{
+              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontSize: 26,
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "#EEEEF0",
+              lineHeight: 1.35,
+            }}
+          >
+            Medical reports are written for doctors.{"\n"}Not for you.
+          </h2>
+          <div>
+            {PROBLEM_CARDS.map(({ icon: Icon, title, text }) => (
+              <div
+                key={title}
+                style={{
+                  borderLeft: "2px solid #F0406020",
+                  background: "#16181F",
+                  borderRadius: 12,
+                  padding: "16px 20px",
+                  marginBottom: 12,
+                }}
+              >
+                <div className="mb-2 flex items-center gap-2.5">
+                  <Icon
+                    className="h-5 w-5 shrink-0"
+                    style={{ color: "#F04060" }}
+                    strokeWidth={1.5}
+                  />
+                  <h3
+                    style={{
+                      fontSize: 15,
+                      fontFamily: "var(--font-inter), Inter, sans-serif",
+                      fontWeight: 500,
+                      color: "#EEEEF0",
+                    }}
+                  >
+                    {title}
+                  </h3>
+                </div>
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontFamily: "var(--font-inter), Inter, sans-serif",
+                    color: "#8B8FA8",
+                    lineHeight: 1.75,
+                  }}
+                >
+                  {text}
                 </p>
               </div>
             ))}
           </div>
         </section>
 
+        {/* Section 3 — The Solution */}
         <section className="mb-16">
-          <h2 className="type-h2-italic mb-5">Why this matters</h2>
-          <div className="type-body space-y-4 text-[16px] text-[#aaaaaa]">
-            <p>
-              Health anxiety is real. When you don&apos;t understand your results,
-              your mind fills in the worst possible explanation. Prism replaces
-              that fear with clarity.
-            </p>
-            <p>
-              We built Prism because everyone deserves a calm, knowledgeable
-              friend who can sit with them when they get confusing news — not
-              just people who can afford a second opinion.
-            </p>
-            <p>
-              This isn&apos;t a replacement for your doctor. It&apos;s the
-              conversation that helps you walk into that appointment feeling
-              informed, not afraid.
-            </p>
-          </div>
+          <SectionLabel>WHAT PRISM DOES</SectionLabel>
+          <h2
+            className="mb-4"
+            style={{
+              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontSize: 26,
+              fontWeight: 400,
+              color: "#EEEEF0",
+              lineHeight: 1.35,
+            }}
+          >
+            Five intelligent agents. One clear answer.
+          </h2>
+          <p
+            className="mb-6"
+            style={{
+              fontSize: 15,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              color: "#8B8FA8",
+              lineHeight: 1.8,
+            }}
+          >
+            Prism uses five specialized Gemini AI agents running in a directed
+            pipeline — each with one job, done well.
+          </p>
+          {AGENT_CARDS.map((agent) => (
+            <AgentCard key={agent.name} {...agent} />
+          ))}
         </section>
 
+        {/* Section 4 — Why It Matters */}
         <section className="mb-16">
-          <h2 className="type-h2-italic mb-5">Your privacy, completely</h2>
-          <div className="type-body mb-8 space-y-4 text-[16px] text-[#aaaaaa]">
-            <p>
-              Prism never stores your data. Not your report, not your results, not
-              even your language preference. Every session is completely fresh.
-              When you close the tab, everything is gone — permanently.
-            </p>
-            <p>
-              We built it this way on purpose. Medical data is the most personal
-              thing there is. It shouldn&apos;t live on a server somewhere.
-            </p>
-          </div>
-          <p className="rounded-element border border-accent-border bg-accent-muted px-6 py-4 text-center text-sm font-medium text-accent">
-            Zero storage · Zero tracking · Zero data retained
-          </p>
-        </section>
-
-        <section className="mb-16">
-          <h2 className="type-h2 mb-5">Built with Gemini</h2>
-          <p className="type-body mb-8 text-[16px] text-[#aaaaaa]">
-            Prism uses Google&apos;s Gemini AI — one of the most capable
-            multimodal models available — to read and understand medical documents
-            the way a trained physician would. Five specialized agents work in
-            parallel to analyze, explain, translate, and guide — all in seconds.
-          </p>
-          <ul className="space-y-3">
-            {TECH_AGENTS.map(({ icon: Icon, name, desc }) => (
-              <li
-                key={name}
-                className="card-surface flex items-center gap-4 px-4 py-3"
+          <SectionLabel>WHY IT MATTERS</SectionLabel>
+          <h2
+            className="mb-6 italic"
+            style={{
+              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontSize: 26,
+              fontWeight: 400,
+              fontStyle: "italic",
+              color: "#EEEEF0",
+              lineHeight: 1.35,
+            }}
+          >
+            Clarity isn&apos;t a luxury.{"\n"}It&apos;s a right.
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              style={{
+                borderLeft: "2px solid #00C89620",
+                background: "#16181F",
+                borderRadius: 12,
+                padding: 20,
+              }}
+            >
+              <span
+                className="mb-2 block leading-none"
+                style={{
+                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontSize: 40,
+                  color: "#00C89620",
+                }}
+                aria-hidden
               >
-                <Icon
-                  className="h-5 w-5 shrink-0 text-accent"
-                  strokeWidth={1.5}
-                  aria-hidden
-                />
-                <p className="text-sm text-text-secondary">
-                  <span className="font-medium text-text-primary">{name}</span>
-                  {" — "}
-                  {desc}
-                </p>
-              </li>
-            ))}
-          </ul>
+                &ldquo;
+              </span>
+              <p
+                className="mb-4 italic"
+                style={{
+                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontSize: 16,
+                  fontStyle: "italic",
+                  color: "#EEEEF0",
+                  lineHeight: 1.6,
+                }}
+              >
+                My grandmother cried when she got her report. Not because
+                something was wrong — but because she had no idea what any of it
+                meant.
+              </p>
+              <p
+                style={{
+                  fontSize: 10,
+                  fontFamily: "var(--font-inter), Inter, sans-serif",
+                  color: "#454760",
+                }}
+              >
+                — The reason Prism exists
+              </p>
+            </div>
+            <div
+              style={{
+                borderLeft: "2px solid #00C89620",
+                background: "#16181F",
+                borderRadius: 12,
+                padding: 20,
+              }}
+            >
+              <span
+                className="mb-2 block leading-none"
+                style={{
+                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontSize: 40,
+                  color: "#00C89620",
+                }}
+                aria-hidden
+              >
+                &ldquo;
+              </span>
+              <p
+                className="mb-4 italic"
+                style={{
+                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontSize: 16,
+                  fontStyle: "italic",
+                  color: "#EEEEF0",
+                  lineHeight: 1.6,
+                }}
+              >
+                Understanding your own health shouldn&apos;t require a medical
+                degree or a second opinion you can&apos;t afford.
+              </p>
+              <p
+                style={{
+                  fontSize: 10,
+                  fontFamily: "var(--font-inter), Inter, sans-serif",
+                  color: "#454760",
+                }}
+              >
+                — Our design principle
+              </p>
+            </div>
+          </div>
         </section>
 
-        <section className="pt-4 text-center">
-          <Link href="/" className="btn-primary inline-flex">
-            Analyze your report
+        {/* Section 5 — Privacy */}
+        <section className="mb-16">
+          <SectionLabel>YOUR PRIVACY</SectionLabel>
+          <h2
+            className="mb-4"
+            style={{
+              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontSize: 26,
+              fontWeight: 400,
+              color: "#EEEEF0",
+              lineHeight: 1.35,
+            }}
+          >
+            We built zero storage{"\n"}into the foundation.
+          </h2>
+          <div
+            className="mb-8 space-y-4"
+            style={{
+              fontSize: 15,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              color: "#8B8FA8",
+              lineHeight: 1.8,
+            }}
+          >
+            <p>
+              Most health apps store your data. Prism was designed from day one
+              to store nothing.
+            </p>
+            <p>
+              Your report is read in your browser session, sent to Gemini for
+              analysis, and the response comes back to you. Nothing is logged.
+              Nothing is retained. When you close the tab, it&apos;s as if you
+              were never here.
+            </p>
+            <p>
+              Medical data is the most personal thing there is. It deserves to
+              be treated that way.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div
+              className="inline-flex flex-col items-center text-center"
+              style={{
+                background: "#00C8960F",
+                border: "0.5px solid #00C89630",
+                borderRadius: 12,
+                padding: "20px 32px",
+              }}
+            >
+              <ShieldCheck
+                className="mb-2 h-5 w-5"
+                style={{ color: "#00C896" }}
+                strokeWidth={1.5}
+              />
+              <p
+                className="mb-1"
+                style={{
+                  fontSize: 14,
+                  fontFamily: "var(--font-inter), Inter, sans-serif",
+                  fontWeight: 500,
+                  color: "#00C896",
+                }}
+              >
+                Zero storage · Zero tracking · Zero data retained
+              </p>
+              <p
+                style={{
+                  fontSize: 12,
+                  fontFamily: "var(--font-inter), Inter, sans-serif",
+                  color: "#454760",
+                }}
+              >
+                Your report disappears when you close this tab.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 6 — Tech Stack */}
+        <section className="mb-16">
+          <SectionLabel>BUILT WITH</SectionLabel>
+          <h2
+            className="mb-6"
+            style={{
+              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontSize: 24,
+              fontWeight: 400,
+              color: "#EEEEF0",
+            }}
+          >
+            The technology behind Prism
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {TECH_PILLS.map((pill) => (
+              <span
+                key={pill}
+                style={{
+                  background: "#16181F",
+                  border: "0.5px solid #232536",
+                  borderRadius: 99,
+                  padding: "8px 16px",
+                  fontSize: 13,
+                  fontFamily: "var(--font-inter), Inter, sans-serif",
+                  fontWeight: 500,
+                  color: "#8B8FA8",
+                }}
+              >
+                {pill}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        {/* Section 7 — CTA */}
+        <section
+          className="flex flex-col items-center text-center"
+          style={{ paddingTop: 40, paddingBottom: 60 }}
+        >
+          <h2
+            className="mb-6 italic"
+            style={{
+              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontSize: 24,
+              fontWeight: 300,
+              fontStyle: "italic",
+              color: "#EEEEF0",
+            }}
+          >
+            Ready to understand your report?
+          </h2>
+          <Link
+            href="/"
+            className="btn-primary inline-flex justify-center"
+            style={{ width: 240 }}
+          >
+            Upload your report
             <ArrowRight className="h-4 w-4" />
           </Link>
+          <p
+            className="mt-2.5"
+            style={{
+              fontSize: 11,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              color: "#454760",
+            }}
+          >
+            Free · No account · Nothing saved
+          </p>
         </section>
-      </article>
+      </main>
     </div>
   );
 }

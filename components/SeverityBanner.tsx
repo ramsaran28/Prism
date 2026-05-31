@@ -13,17 +13,37 @@ export function SeverityBanner({ severity }: SeverityBannerProps) {
   if (!banner) return null;
 
   const styles = {
-    green: "border-accent-border bg-success-muted text-accent",
-    amber: "border-warning/30 bg-warning-muted text-warning",
-    red: "border-danger/30 bg-danger-muted text-danger",
+    green: {
+      border: "0.5px solid #00C89630",
+      background: "#00C89608",
+      color: "#00C896",
+    },
+    amber: {
+      border: "0.5px solid #F0A50030",
+      background: "#F0A50008",
+      color: "#F0A500",
+    },
+    red: {
+      border: "0.5px solid #F0406030",
+      background: "#F0406008",
+      color: "#F04060",
+    },
   };
+
+  const s = styles[banner.color];
 
   return (
     <div
-      className={`severity-banner ${styles[banner.color]}`}
+      className="severity-banner mb-5"
+      style={{
+        border: s.border,
+        background: s.background,
+        color: s.color,
+        fontSize: 14,
+      }}
       role="status"
     >
-      <AlertCircle className="h-5 w-5 shrink-0 opacity-90" strokeWidth={1.5} aria-hidden />
+      <AlertCircle className="h-4 w-4 shrink-0 opacity-90" strokeWidth={1.5} aria-hidden />
       <p className="flex-1">{banner.message}</p>
     </div>
   );

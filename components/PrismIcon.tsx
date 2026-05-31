@@ -18,7 +18,7 @@ export function PrismIcon({
     >
       <path
         d="M10 3 L16.928 16 H3.072 L10 3 Z"
-        stroke="#00D4AA"
+        stroke="#00C896"
         strokeWidth="1.25"
         strokeLinejoin="round"
       />
@@ -27,7 +27,7 @@ export function PrismIcon({
         y1="11"
         x2="19"
         y2="8.5"
-        stroke="#FF4D6A"
+        stroke="#F04060"
         strokeWidth="1"
         strokeLinecap="round"
       />
@@ -36,7 +36,7 @@ export function PrismIcon({
         y1="11"
         x2="19"
         y2="11"
-        stroke="#00D4AA"
+        stroke="#00C896"
         strokeWidth="1"
         strokeLinecap="round"
       />
@@ -45,7 +45,7 @@ export function PrismIcon({
         y1="11"
         x2="19"
         y2="13.5"
-        stroke="#4D9FFF"
+        stroke="#5B8DEF"
         strokeWidth="1"
         strokeLinecap="round"
       />

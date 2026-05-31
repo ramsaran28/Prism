@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import {
   Scan,
   AlertTriangle,
   MessageCircle,
   Languages,
   Compass,
-  Lock,
-  Info,
+  Activity,
+  BookOpen,
+  ShieldCheck,
 } from "lucide-react";
-import { PrismLogo } from "./PrismLogo";
+import { PrismIcon } from "./PrismIcon";
 import type { AgentId, AgentStatus } from "@/lib/types";
 
 const AGENTS: { id: AgentId; name: string; icon: typeof Scan }[] = [
@@ -19,32 +21,52 @@ const AGENTS: { id: AgentId; name: string; icon: typeof Scan }[] = [
   { id: "explain", name: "Explain", icon: MessageCircle },
   { id: "translate", name: "Translate", icon: Languages },
   { id: "guide", name: "Guide", icon: Compass },
+  { id: "score", name: "Score", icon: Activity },
 ];
+
+export type DashboardSectionRefs = Partial<
+  Record<AgentId, RefObject<HTMLElement | null>>
+>;
 
 interface AgentStatusPanelProps {
   statuses: Record<AgentId, AgentStatus>;
+  sectionRefs: DashboardSectionRefs;
+  topRef?: RefObject<HTMLElement | null>;
 }
 
 function StatusDot({ status }: { status: AgentStatus }) {
-  if (status === "running") {
+  const prevStatus = useRef<AgentStatus>(status);
+  const [justDone, setJustDone] = useState(false);
+
+  useEffect(() => {
+    if (prevStatus.current === "running" && status === "done") {
+      setJustDone(true);
+      const t = setTimeout(() => setJustDone(false), 200);
+      prevStatus.current = status;
+      return () => clearTimeout(t);
+    }
+    prevStatus.current = status;
+  }, [status]);
+
+  if (status === "waiting") {
     return (
       <span
-        className="inline-block h-2 w-2 shrink-0 rounded-full bg-warning animate-pulse-dot"
+        className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-status-waiting"
         aria-hidden
       />
     );
   }
-  if (status === "done") {
+  if (status === "running") {
     return (
       <span
-        className="inline-block h-2 w-2 shrink-0 rounded-full bg-accent"
+        className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-warning animate-pulse-dot"
         aria-hidden
       />
     );
   }
   return (
     <span
-      className="inline-block h-2 w-2 shrink-0 rounded-full bg-status-waiting"
+      className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-accent ${justDone ? "status-dot-done" : ""}`}
       aria-hidden
     />
   );
@@ -56,74 +78,256 @@ function statusLabel(status: AgentStatus): string {
   return "Done";
 }
 
-function statusColor(status: AgentStatus): string {
-  if (status === "waiting") return "#4E4C5E";
-  if (status === "running") return "#F5A623";
-  return "#00D4AA";
+function statusTextColor(status: AgentStatus): string {
+  if (status === "waiting") return "#454760";
+  if (status === "running") return "#F0A500";
+  return "#00C896";
 }
 
-export function AgentStatusPanel({ statuses }: AgentStatusPanelProps) {
+function agentItemColors(status: AgentStatus, isActive: boolean) {
+  if (isActive) {
+    return {
+      icon: status === "waiting" ? "#454760" : status === "running" ? "#F0A500" : "#00C896",
+      name: "#EEEEF0",
+      bg: "#16181F",
+      border: "#00C896",
+    };
+  }
+  if (status === "waiting") {
+    return { icon: "#454760", name: "#454760", bg: "transparent", border: "transparent" };
+  }
+  if (status === "running") {
+    return { icon: "#F0A500", name: "#EEEEF0", bg: "transparent", border: "transparent" };
+  }
+  return { icon: "#00C896", name: "#EEEEF0", bg: "transparent", border: "transparent" };
+}
+
+export function AgentStatusPanel({
+  statuses,
+  sectionRefs,
+  topRef,
+}: AgentStatusPanelProps) {
+  const [activeSection, setActiveSection] = useState<AgentId | null>("scan");
+  const [hoveredId, setHoveredId] = useState<AgentId | null>(null);
+
+  useEffect(() => {
+    const elements: { id: AgentId; el: HTMLElement }[] = [];
+    if (topRef?.current) elements.push({ id: "scan", el: topRef.current });
+    for (const agent of AGENTS) {
+      if (agent.id === "scan") continue;
+      const el = sectionRefs[agent.id]?.current;
+      if (el) elements.push({ id: agent.id, el });
+    }
+    if (!elements.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]) {
+          const id = visible[0].target.getAttribute("data-agent-section");
+          if (id) setActiveSection(id as AgentId);
+        }
+      },
+      { rootMargin: "-80px 0px -55% 0px", threshold: [0.1, 0.25, 0.5] }
+    );
+
+    elements.forEach(({ el }) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [sectionRefs, topRef]);
+
+  const scrollToAgent = useCallback(
+    (id: AgentId) => {
+      if (id === "scan") {
+        topRef?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      sectionRefs[id]?.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    },
+    [sectionRefs, topRef]
+  );
+
   return (
     <aside
-      className="flex w-[220px] shrink-0 flex-col border-r border-border bg-sidebar"
+      className="flex w-[220px] shrink-0 flex-col bg-sidebar"
+      style={{ borderRight: "0.5px solid #232536" }}
       aria-label="Analysis progress"
     >
-      <div className="border-b border-border px-4 py-5">
-        <PrismLogo />
+      <div
+        className="border-b border-border"
+        style={{ padding: "20px 16px" }}
+      >
+        <div className="flex items-center gap-2">
+          <PrismIcon size={20} />
+          <span className="logo-text">Prism</span>
+        </div>
+        <p
+          className="mt-1"
+          style={{
+            fontSize: 10,
+            fontFamily: "var(--font-inter), Inter, sans-serif",
+            color: "#454760",
+            letterSpacing: "0.3px",
+          }}
+        >
+          Medical Intelligence
+        </p>
       </div>
 
-      <ul className="flex flex-1 flex-col gap-1 px-2 py-3">
-        {AGENTS.map(({ id, name, icon: Icon }) => {
-          const status = statuses[id];
-          return (
-            <li
-              key={id}
-              className="sidebar-agent-item flex items-center gap-2.5 px-4 py-3"
-            >
-              <Icon
-                className="h-[18px] w-[18px] shrink-0 text-text-tertiary"
-                strokeWidth={1.5}
-                aria-hidden
-              />
-              <div className="min-w-0 flex-1">
-                <p className="sidebar-agent-name">{name}</p>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <StatusDot status={status} />
-                  <span
-                    className="text-[11px] font-normal"
-                    style={{ color: statusColor(status) }}
-                  >
-                    {statusLabel(status)}
-                  </span>
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="flex flex-1 flex-col overflow-y-auto px-2 py-2">
+        <p
+          className="uppercase tracking-[1px]"
+          style={{
+            fontSize: 10,
+            fontFamily: "var(--font-inter), Inter, sans-serif",
+            color: "#454760",
+            padding: "16px 16px 8px",
+          }}
+        >
+          Agents
+        </p>
 
-      <div className="border-t border-border px-2 py-2">
+        <ul className="flex flex-col gap-0.5">
+          {AGENTS.map(({ id, name, icon: Icon }) => {
+            const status = statuses[id];
+            const isActive = activeSection === id;
+            const isHovered = hoveredId === id;
+            const colors = agentItemColors(status, isActive || isHovered);
+
+            return (
+              <li key={id}>
+                <button
+                  type="button"
+                  onClick={() => scrollToAgent(id)}
+                  onMouseEnter={() => setHoveredId(id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  className="flex w-full items-center gap-2.5 text-left transition-all duration-[120ms] ease-in-out"
+                  style={{
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: isHovered || isActive ? "#16181F" : colors.bg,
+                    borderLeft: `2px solid ${isHovered || isActive ? "#00C896" : colors.border}`,
+                    cursor: "pointer",
+                  }}
+                >
+                  <Icon
+                    className="h-4 w-4 shrink-0"
+                    style={{ color: isHovered ? "#00C896" : colors.icon }}
+                    strokeWidth={1.5}
+                    aria-hidden
+                  />
+                  <span
+                    className="min-w-0 flex-1"
+                    style={{
+                      fontSize: 13,
+                      fontFamily: "var(--font-inter), Inter, sans-serif",
+                      fontWeight: 500,
+                      color: isHovered ? "#EEEEF0" : colors.name,
+                    }}
+                  >
+                    {name}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <StatusDot status={status} />
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontFamily: "var(--font-inter), Inter, sans-serif",
+                        color: statusTextColor(status),
+                      }}
+                    >
+                      {statusLabel(status)}
+                    </span>
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div
+          style={{
+            height: 0.5,
+            background: "#232536",
+            margin: "12px 8px",
+          }}
+        />
+
         <Link
           href="/about"
-          className="sidebar-nav-link flex items-center gap-2.5 rounded-element border-l-2 border-transparent px-4 py-3 transition-all duration-150"
+          className="flex items-center gap-2.5 transition-all duration-[120ms] ease-in-out"
+          style={{
+            padding: "10px 14px",
+            borderRadius: 10,
+            borderLeft: "2px solid transparent",
+            color: "#454760",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#16181F";
+            e.currentTarget.style.borderLeftColor = "#00C896";
+            e.currentTarget.style.color = "#EEEEF0";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.borderLeftColor = "transparent";
+            e.currentTarget.style.color = "#454760";
+          }}
         >
-          <Info
-            className="h-[18px] w-[18px] shrink-0 text-text-tertiary"
-            strokeWidth={1.5}
-          />
-          <span className="text-[13px] font-medium text-text-secondary">
+          <BookOpen className="h-[15px] w-[15px] shrink-0" strokeWidth={1.5} />
+          <span
+            style={{
+              fontSize: 13,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              fontWeight: 500,
+            }}
+          >
             About Prism
           </span>
         </Link>
       </div>
 
-      <div className="mt-auto flex items-start gap-2 p-4">
-        <Lock
-          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent"
-          strokeWidth={1.5}
-          aria-hidden
-        />
-        <p className="sidebar-footer-text">Nothing is saved. Ever.</p>
+      <div className="p-2">
+        <div
+          style={{
+            background: "#00C89608",
+            border: "0.5px solid #00C89625",
+            borderRadius: 8,
+            padding: "10px 12px",
+            margin: 8,
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <ShieldCheck
+              className="h-[13px] w-[13px] shrink-0"
+              style={{ color: "#00C896" }}
+              strokeWidth={1.5}
+            />
+            <span
+              style={{
+                fontSize: 11,
+                fontFamily: "var(--font-inter), Inter, sans-serif",
+                fontWeight: 500,
+                color: "#00C896",
+              }}
+            >
+              Zero data stored
+            </span>
+          </div>
+          <p
+            className="mt-1 pl-[21px]"
+            style={{
+              fontSize: 10,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              color: "#454760",
+            }}
+          >
+            Session only · Nothing saved
+          </p>
+        </div>
       </div>
     </aside>
   );

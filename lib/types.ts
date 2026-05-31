@@ -30,7 +30,29 @@ export interface GuideResult {
 
 export type AgentStatus = "waiting" | "running" | "done";
 
-export type AgentId = "scan" | "risk" | "explain" | "translate" | "guide";
+export type AgentId =
+  | "scan"
+  | "risk"
+  | "explain"
+  | "translate"
+  | "guide"
+  | "score";
+
+export type CategoryStatus = "good" | "fair" | "needs attention";
+
+export interface ScoreCategory {
+  name: string;
+  score: number;
+  maxScore: 25;
+  status: CategoryStatus;
+  oneLineNote: string;
+}
+
+export interface ScoreResult {
+  totalScore: number;
+  categories: ScoreCategory[];
+  encouragingMessage: string;
+}
 
 export interface SessionPayload {
   base64: string;

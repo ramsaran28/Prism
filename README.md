@@ -107,6 +107,7 @@ When you close the tab, everything is gone.
 
 Built in one night at QuackHacks 3.
 Submitted to Google (Gemini) and ElevenLabs tracks.
+Authors: Ram Saran Venkatasalapathy and Jayasnehasree Sannidhi
 
 ---
 

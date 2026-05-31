@@ -1,8 +1,8 @@
-# ⟁ Prism — Medical Intelligence
+#  Prism — Medical Intelligence
 
 > **Your health report, in words you understand.**
 
-🔗 **Live app:** https://prism-sigma-five.vercel.app
+ **Live app:** https://prism-sigma-five.vercel.app
 
 ---
 

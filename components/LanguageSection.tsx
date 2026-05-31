@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { formatPlainParagraphs, stripMarkdown } from "@/lib/formatText";
+import { prefetchTts } from "@/lib/ttsClient";
 import { LanguagePicker } from "./LanguagePicker";
 import { LanguageVoiceButton } from "./LanguageVoiceButton";
 import { SectionInfoButton } from "./SectionInfoButton";
@@ -24,10 +26,15 @@ export function LanguageSection({
 
   const showVoice = Boolean(translation?.trim() && !loading);
 
+  useEffect(() => {
+    if (!translation?.trim() || loading) return;
+    void prefetchTts(translation, activeLanguage);
+  }, [translation, activeLanguage, loading]);
+
   return (
     <section className="card-surface">
       <div className="section-title-row mb-5">
-        <h2 className="type-h2">In your language</h2>
+        <h2 className="type-section-title">In your language</h2>
         <SectionInfoButton
           modalTitle="About translations"
           ariaLabel="About translations"
@@ -41,12 +48,10 @@ export function LanguageSection({
             no medical jargon in any language.
           </p>
           <p>
-            The Listen button reads the translation aloud using ElevenLabs voice
-            technology, which supports 29 languages natively.
-          </p>
-          <p>
-            For languages outside those 29, the voice will read in the closest
-            supported language.
+            The Listen button reads the translation aloud with a voice matched
+            to your language — Indian voices for Hindi, Tamil, Kannada,
+            Malayalam, Telugu, and other regional languages (not an American
+            accent).
           </p>
         </SectionInfoButton>
       </div>
@@ -58,14 +63,14 @@ export function LanguageSection({
       />
 
       {loading && !translation && (
-        <p className="mt-4 text-sm text-text-secondary">
+        <p className="mt-4 text-[15px] text-text-secondary">
           Preparing translation…
         </p>
       )}
 
       {paragraphs.length > 0 && (
         <div className="relative mt-6">
-          <div className="type-summary">
+          <div className="type-translation">
             {paragraphs.map((para, i) => (
               <p key={i} className="mb-4 last:mb-0">
                 {para}

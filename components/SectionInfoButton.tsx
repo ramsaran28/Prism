@@ -28,12 +28,12 @@ export function SectionInfoButton({
         type="button"
         onClick={() => openModal(modalId)}
         className="inline-flex shrink-0 align-middle transition-colors duration-150 ease-in-out"
-        style={{ color: "#454760", cursor: "pointer", marginLeft: 8 }}
+        style={{ color: "#8E92A8", cursor: "pointer", marginLeft: 8 }}
         onMouseEnter={(e) => {
           e.currentTarget.style.color = "#8B8FA8";
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.color = "#454760";
+          e.currentTarget.style.color = "#8E92A8";
         }}
         aria-label={ariaLabel}
       >

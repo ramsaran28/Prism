@@ -118,7 +118,7 @@ export function BodySystemsMap({ values, risk }: BodySystemsMapProps) {
     <section className="card-surface overflow-hidden !p-0">
       <div className="border-b border-border px-7 py-5">
         <div className="section-title-row">
-          <h2 className="type-h2">Body systems affected</h2>
+        <h2 className="type-section-title">Body systems affected</h2>
           <SectionInfoButton
             modalTitle="How to use the body map"
             ariaLabel="How to use the body map"
@@ -128,10 +128,10 @@ export function BodySystemsMap({ values, risk }: BodySystemsMapProps) {
               your lab results.
             </p>
             <p>The color of each organ tells you its status:</p>
-            <InfoBullet color="#00C896">Green — values in this area look healthy</InfoBullet>
-            <InfoBullet color="#F0A500">Amber — one or more values need attention</InfoBullet>
-            <InfoBullet color="#F04060">Red — values here need prompt care</InfoBullet>
-            <InfoBullet color="#454760">Gray — this area wasn&apos;t tested</InfoBullet>
+            <InfoBullet color="#4ECBA8">Green — values in this area look healthy</InfoBullet>
+            <InfoBullet color="#D4956A">Amber — one or more values need attention</InfoBullet>
+            <InfoBullet color="#C4617A">Red — values here need prompt care</InfoBullet>
+            <InfoBullet color="#3E4260">Gray — this area wasn&apos;t tested</InfoBullet>
             <p>
               Click any organ on the body to see the specific values related to
               it and what they mean in plain language.
@@ -160,7 +160,7 @@ export function BodySystemsMap({ values, risk }: BodySystemsMapProps) {
               }
             />
           ) : (
-            <p className="type-body text-sm">
+            <p className="type-panel-body text-[15px]">
               Tap a label or highlighted area to see what your results mean.
             </p>
           )}
@@ -203,11 +203,11 @@ function RegionDetailCard({
     <div className="card-surface bg-card-hover px-6 py-5">
       <div className="mb-4 flex items-center gap-3">
         <Icon className="h-5 w-5 shrink-0 text-accent" strokeWidth={1.5} />
-        <h3 className="type-h2 text-base">{REGION_LABELS[region]}</h3>
+        <h3 className="type-panel-heading">{REGION_LABELS[region]}</h3>
         <span className={`ml-auto ${badge.className}`}>{badge.label}</span>
       </div>
 
-      <p className="type-body mb-4 text-[15px]">{intro}</p>
+      <p className="type-panel-body mb-4">{intro}</p>
 
       {flaggedValues.length > 0 ? (
         <ul className="mb-4 space-y-2.5 border-t border-border pt-4">
@@ -216,7 +216,7 @@ function RegionDetailCard({
             return (
               <li
                 key={`${v.name}-${v.result}`}
-                className="grid grid-cols-[1fr_auto_auto] items-center gap-3 text-sm"
+                className="grid grid-cols-[1fr_auto_auto] items-center gap-3 text-[15px]"
               >
                 <span className="text-text-primary">{getValueLabel(v)}</span>
                 <span className="value-mono text-text-secondary">
@@ -229,11 +229,11 @@ function RegionDetailCard({
           })}
         </ul>
       ) : system.values.length > 0 ? (
-        <p className="type-body mb-4 border-t border-border pt-4 text-sm">
+        <p className="type-panel-body mb-4 border-t border-border pt-4">
           No flagged results in this area.
         </p>
       ) : (
-        <p className="type-body mb-4 border-t border-border pt-4 text-sm">
+        <p className="type-panel-body mb-4 border-t border-border pt-4">
           No related tests in your report.
         </p>
       )}
@@ -246,9 +246,9 @@ function RegionDetailCard({
           onClick={onAskWhy}
           className="mt-3 block text-left hover:underline"
           style={{
-            fontSize: 12,
+            fontSize: 14,
             fontFamily: "var(--font-inter), Inter, sans-serif",
-            color: "#00C896",
+            color: "#4ECBA8",
             cursor: "pointer",
             marginTop: 12,
           }}

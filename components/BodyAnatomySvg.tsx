@@ -1,6 +1,14 @@
 "use client";
 
-import type { ReactNode } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import type {
   BodyMapAnnotation,
   MapRegionId,
@@ -8,17 +16,54 @@ import type {
 } from "@/lib/bodySystems";
 import { BODY_FIGURE } from "@/lib/bodySystems";
 
+const ANNOTATION_ORDER: MapRegionId[] = [
+  "brain",
+  "heart",
+  "stomach",
+  "blood",
+  "thyroid",
+  "liver",
+  "kidneys",
+  "bones",
+];
+
+function annotationIndex(region: MapRegionId): number {
+  const i = ANNOTATION_ORDER.indexOf(region);
+  return i >= 0 ? i : 0;
+}
+
+function elbowPath(
+  side: "left" | "right",
+  orgX: number,
+  orgY: number,
+  labelX: number,
+  labelY: number
+): string {
+  const { edgeLeft, edgeRight } = BODY_FIGURE;
+  if (side === "left") {
+    const bendX = edgeLeft - 6;
+    const pillEndX = labelX + Math.min(edgeLeft - labelX - 4, 62);
+    return `M ${orgX} ${orgY} L ${bendX} ${orgY} L ${bendX} ${labelY} L ${pillEndX} ${labelY}`;
+  }
+  const bendX = edgeRight + 6;
+  return `M ${orgX} ${orgY} L ${bendX} ${orgY} L ${bendX} ${labelY} L ${labelX} ${labelY}`;
+}
+
 function RegionGroup({
   region,
   active,
   title,
   onSelect,
+  onHover,
+  onLeave,
   children,
 }: {
   region: MapRegionId;
   active: boolean;
   title: string;
   onSelect: (region: MapRegionId) => void;
+  onHover: (region: MapRegionId) => void;
+  onLeave: () => void;
   children: ReactNode;
 }) {
   return (
@@ -27,6 +72,10 @@ function RegionGroup({
       data-region={region}
       aria-label={title}
       onClick={() => onSelect(region)}
+      onMouseEnter={() => onHover(region)}
+      onMouseLeave={onLeave}
+      onFocus={() => onHover(region)}
+      onBlur={onLeave}
       style={{ pointerEvents: "all", cursor: "pointer" }}
     >
       <title>{title}</title>
@@ -35,50 +84,208 @@ function RegionGroup({
   );
 }
 
-function organPaint(style: OrganStyle, active: boolean) {
-  const isCritical = style.visual === "hh" || style.visual === "ll";
+function glowPaint(style: OrganStyle, active: boolean) {
   return {
     fill: style.fill,
     fillOpacity: style.fillOpacity,
-    stroke: active ? "#FFFFFF" : style.stroke,
-    strokeWidth: active ? 1.5 : 1,
-    strokeOpacity: active ? 1 : 0.8,
-    ...(isCritical && !active ? {} : {}),
+    stroke: active ? "#E8EAF2" : "transparent",
+    strokeWidth: active ? 1.5 : 0,
   };
 }
 
-function CriticalGlow({
-  style,
-  glow,
-  children,
-}: {
-  style: OrganStyle;
-  glow: ReactNode;
-  children: ReactNode;
+function ScanGrid({ panelX, panelY, panelW, panelH }: {
+  panelX: number;
+  panelY: number;
+  panelW: number;
+  panelH: number;
 }) {
-  const isCritical = style.visual === "hh" || style.visual === "ll";
-  if (!isCritical) return <>{children}</>;
-  return (
-    <g>
-      <g fill={style.fill} fillOpacity={0.12} stroke="none">
-        {glow}
-      </g>
-      {children}
-    </g>
-  );
+  const lines: ReactNode[] = [];
+  for (let y = panelY; y <= panelY + panelH; y += 20) {
+    lines.push(
+      <line
+        key={`h-${y}`}
+        x1={panelX}
+        y1={y}
+        x2={panelX + panelW}
+        y2={y}
+        stroke="rgba(78, 203, 168, 0.04)"
+        strokeWidth={0.5}
+      />
+    );
+  }
+  for (let x = panelX; x <= panelX + panelW; x += 20) {
+    lines.push(
+      <line
+        key={`v-${x}`}
+        x1={x}
+        y1={panelY}
+        x2={x}
+        y2={panelY + panelH}
+        stroke="rgba(78, 203, 168, 0.04)"
+        strokeWidth={0.5}
+      />
+    );
+  }
+  return <g>{lines}</g>;
 }
 
-function annotationLine(
-  side: "left" | "right",
-  labelX: number,
-  labelY: number,
-  organX: number,
-  organY: number
-) {
-  const labelEdge = side === "left" ? labelX + 56 : labelX - 56;
-  const bodyEdge = side === "left" ? 72 : 208;
-  const x2 = side === "left" ? Math.min(organX, bodyEdge) : Math.max(organX, bodyEdge);
-  return { x1: labelEdge, y1: labelY, x2, y2: organY };
+function DiagnosisAnnotation({
+  annotation,
+  index,
+  hovered,
+  onSelect,
+  onHover,
+  onLeave,
+}: {
+  annotation: BodyMapAnnotation;
+  index: number;
+  hovered: boolean;
+  onSelect: (region: MapRegionId) => void;
+  onHover: (region: MapRegionId) => void;
+  onLeave: () => void;
+}) {
+  const pathRef = useRef<SVGPathElement>(null);
+  const [pathLen, setPathLen] = useState(0);
+  const [lineDrawn, setLineDrawn] = useState(false);
+  const { organX, organY, labelX, labelY, side, statusColor, statusLabel, title, region } =
+    annotation;
+  const isCritical = statusLabel === "Critical";
+  const pathD = elbowPath(side, organX, organY, labelX, labelY);
+  const dotDelay = index * 150;
+  const lineDelay = dotDelay + 100;
+  const { edgeLeft, edgeRight } = BODY_FIGURE;
+  const maxPillW =
+    side === "left"
+      ? edgeLeft - labelX - 4
+      : 440 - labelX - 4;
+  const pillW = Math.min(
+    maxPillW,
+    Math.max(56, title.length * 6 + 12)
+  );
+  const pillH = 34;
+  const pillX = labelX;
+  const pillY = labelY - pillH / 2;
+  const lineEndX = side === "left" ? pillX + pillW : pillX;
+
+  useLayoutEffect(() => {
+    if (pathRef.current) {
+      setPathLen(pathRef.current.getTotalLength());
+    }
+  }, [pathD]);
+
+  const handleKey = (e: KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") onSelect(region);
+  };
+
+  return (
+    <g
+      className="cursor-pointer"
+      onClick={() => onSelect(region)}
+      onMouseEnter={() => onHover(region)}
+      onMouseLeave={onLeave}
+      onFocus={() => onHover(region)}
+      onBlur={onLeave}
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleKey}
+    >
+      <path
+        ref={pathRef}
+        d={pathD}
+        fill="none"
+        stroke={statusColor}
+        strokeWidth={hovered ? 1.5 : 1}
+        strokeOpacity={hovered ? 1 : 0.85}
+        className={`body-map-annotation-line ${hovered ? "is-hovered" : ""} ${!lineDrawn && pathLen > 0 ? "body-map-line-draw" : ""}`}
+        strokeDasharray={lineDrawn ? "5 3" : `${pathLen} ${pathLen}`}
+        strokeDashoffset={lineDrawn ? 0 : pathLen}
+        style={
+          {
+            "--path-len": pathLen,
+            animationDelay: `${lineDelay}ms`,
+          } as CSSProperties
+        }
+        onAnimationEnd={() => setLineDrawn(true)}
+      />
+
+      {/* Organ endpoint — glowing dot */}
+      <g
+        className="body-map-dot-enter"
+        style={{ animationDelay: `${dotDelay}ms` }}
+      >
+        <circle
+          cx={organX}
+          cy={organY}
+          r={5}
+          fill={statusColor}
+          fillOpacity={0.2}
+          className={`body-map-endpoint-halo ${hovered ? "is-hovered" : ""} ${isCritical ? "body-map-dot-halo-critical" : ""}`}
+        />
+        <circle
+          cx={organX}
+          cy={organY}
+          r={2.5}
+          fill={statusColor}
+          fillOpacity={0.9}
+        />
+      </g>
+
+      {/* Label endpoint dot — sits at pill edge, not on body */}
+      <circle cx={lineEndX} cy={labelY} r={2} fill={statusColor} />
+
+      {/* Label pill — rendered in margin, never on the body */}
+      <foreignObject
+        x={pillX}
+        y={pillY}
+        width={pillW}
+        height={pillH}
+        style={{ overflow: "visible", pointerEvents: "none" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            height: "100%",
+            padding: side === "left" ? "0 6px 0 8px" : "0 8px 0 6px",
+            background: "#252830",
+            border: `0.5px solid ${statusColor}${hovered ? "cc" : "55"}`,
+            borderRadius: 6,
+            boxShadow: hovered
+              ? `0 0 12px ${statusColor}40`
+              : "0 2px 8px rgba(0,0,0,0.35)",
+            textAlign: side === "left" ? "right" : "left",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              letterSpacing: 0.4,
+              color: statusColor,
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {title}
+          </span>
+          <span
+            style={{
+              fontSize: 12,
+              fontFamily: "var(--font-inter), Inter, sans-serif",
+              color: "#8E92A8",
+              lineHeight: 1.2,
+              marginTop: 1,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {statusLabel}
+          </span>
+        </div>
+      </foreignObject>
+    </g>
+  );
 }
 
 interface BodyAnatomySvgProps {
@@ -94,94 +301,102 @@ export function BodyAnatomySvg({
   annotations,
   onSelectRegion,
 }: BodyAnatomySvgProps) {
+  const [hoveredRegion, setHoveredRegion] = useState<MapRegionId | null>(null);
+  const { panelX, panelY, panelW, panelH, x, y, width, height } = BODY_FIGURE;
+
   const s = (id: MapRegionId) => regionStyles[id];
   const active = (id: MapRegionId) => selectedRegion === id;
 
+  const onHover = useCallback((region: MapRegionId) => {
+    setHoveredRegion(region);
+  }, []);
+
+  const onLeave = useCallback(() => {
+    setHoveredRegion(null);
+  }, []);
+
+  const sortedAnnotations = [...annotations].sort(
+    (a, b) => annotationIndex(a.region) - annotationIndex(b.region)
+  );
+
   return (
     <svg
-      viewBox={`0 0 ${BODY_FIGURE.width} ${BODY_FIGURE.height}`}
-      width={280}
-      height={560}
-      className="body-map-fade-in shrink-0"
+      viewBox="0 0 440 560"
+      width={380}
+      height={484}
+      className="body-map-fade-in shrink-0 relative"
       aria-label="Body systems diagram"
     >
-      <rect width={280} height={560} fill="#0F1117" rx={8} />
+      <defs>
+        <filter id="organ-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <clipPath id="body-panel-clip">
+          <rect x={panelX} y={panelY} width={panelW} height={panelH} rx={6} />
+        </clipPath>
+      </defs>
 
-      {/* Body silhouette */}
-      <g fill="transparent" stroke="#454760" strokeWidth={1.5}>
-        <ellipse cx={140} cy={52} rx={32} ry={38} />
-        <rect x={126} y={86} width={28} height={22} rx={8} />
-        <path d="M95 108 Q118 100 140 108 Q162 100 185 108" />
-        <path
-          d="M95 108 Q82 150 72 195 Q68 240 65 285 Q64 295 68 300
-             M185 108 Q198 150 208 195 Q212 240 215 285 Q216 295 212 300"
+      <rect width="440" height="560" fill="#191B22" rx="4" />
+
+      {/* Body illustration panel */}
+      <rect
+        x={panelX}
+        y={panelY}
+        width={panelW}
+        height={panelH}
+        fill="#ffffff"
+        rx="6"
+      />
+      <image
+        href="/body-anatomy-front.png"
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        preserveAspectRatio="xMidYMid meet"
+      />
+
+      {/* X-ray grid overlay */}
+      <g clipPath="url(#body-panel-clip)">
+        <ScanGrid
+          panelX={panelX}
+          panelY={panelY}
+          panelW={panelW}
+          panelH={panelH}
         />
-        <path
-          d="M100 108 Q90 170 88 230 Q85 270 88 310
-             L192 310 Q195 270 190 230 Q188 170 180 108
-             Q160 104 140 106 Q120 104 100 108 Z"
+        <line
+          x1={panelX}
+          y1={panelY}
+          x2={panelX + panelW}
+          y2={panelY}
+          stroke="rgba(78, 203, 168, 0.06)"
+          strokeWidth={1}
+          className="body-map-scanline"
+          style={{ transformOrigin: `${panelX}px ${panelY}px` }}
         />
-        <path
-          d="M88 310 Q92 360 95 420 Q94 470 90 520 Q88 535 100 540
-             M192 310 Q188 360 185 420 Q186 470 190 520 Q192 535 180 540"
-        />
-        <ellipse cx={98} cy={542} rx={18} ry={8} />
-        <ellipse cx={182} cy={542} rx={18} ry={8} />
       </g>
 
-      {/* Internal detail lines */}
-      <g stroke="#2a2a3a" strokeWidth={0.5} fill="none">
-        <path d="M108 118 Q140 122 172 118" />
-        <line x1={140} y1={118} x2={140} y2={200} />
-        <path d="M102 145 Q140 150 178 145" />
-        <path d="M100 175 Q140 180 180 175" />
-        <path d="M98 205 Q140 210 182 205" />
-        <path d="M96 248 Q140 252 184 248" />
-        <path d="M94 262 Q140 266 186 262" />
-      </g>
-
-      {/* Blood / metabolism torso tint */}
-      <RegionGroup
-        region="blood"
-        active={active("blood")}
-        title="Blood & metabolism"
-        onSelect={onSelectRegion}
-      >
-        <rect
-          x={96}
-          y={118}
-          width={88}
-          height={130}
-          rx={20}
-          {...organPaint(s("blood"), active("blood"))}
-          opacity={0.85}
-        />
-      </RegionGroup>
-
-      {/* Organ overlays */}
-      <g filter="url(#organ-glow)">
-        <defs>
-          <filter id="organ-glow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
+      {/* Organ markers — clipped to body panel so glow stays on the figure */}
+      <g clipPath="url(#body-panel-clip)" filter="url(#organ-glow)">
         <RegionGroup
           region="brain"
           active={active("brain")}
           title="Brain"
           onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
         >
-          <CriticalGlow
-            style={s("brain")}
-            glow={<ellipse cx={140} cy={44} rx={32} ry={34} />}
-          >
-            <ellipse cx={140} cy={44} rx={28} ry={30} {...organPaint(s("brain"), active("brain"))} />
-          </CriticalGlow>
+          <ellipse
+            cx="220"
+            cy="50"
+            rx="16"
+            ry="18"
+            {...glowPaint(s("brain"), active("brain"))}
+          />
         </RegionGroup>
 
         <RegionGroup
@@ -189,19 +404,23 @@ export function BodyAnatomySvg({
           active={active("thyroid")}
           title="Thyroid"
           onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
         >
-          <CriticalGlow
-            style={s("thyroid")}
-            glow={
-              <>
-                <ellipse cx={133} cy={96} rx={11} ry={13} />
-                <ellipse cx={147} cy={96} rx={11} ry={13} />
-              </>
-            }
-          >
-            <ellipse cx={133} cy={96} rx={9} ry={11} {...organPaint(s("thyroid"), active("thyroid"))} />
-            <ellipse cx={147} cy={96} rx={9} ry={11} {...organPaint(s("thyroid"), active("thyroid"))} />
-          </CriticalGlow>
+          <ellipse
+            cx="212"
+            cy="98"
+            rx="7"
+            ry="6"
+            {...glowPaint(s("thyroid"), active("thyroid"))}
+          />
+          <ellipse
+            cx="228"
+            cy="98"
+            rx="7"
+            ry="6"
+            {...glowPaint(s("thyroid"), active("thyroid"))}
+          />
         </RegionGroup>
 
         <RegionGroup
@@ -209,18 +428,16 @@ export function BodyAnatomySvg({
           active={active("heart")}
           title="Heart"
           onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
         >
-          <CriticalGlow
-            style={s("heart")}
-            glow={
-              <path d="M125 148 C116 136 104 140 104 152 C104 168 125 180 125 180 C125 180 146 168 146 152 C146 140 134 136 125 148 Z" />
-            }
-          >
-            <path
-              d="M125 148 C118 138 108 142 108 152 C108 164 125 176 125 176 C125 176 142 164 142 152 C142 142 132 138 125 148 Z"
-              {...organPaint(s("heart"), active("heart"))}
-            />
-          </CriticalGlow>
+          <ellipse
+            cx="198"
+            cy="150"
+            rx="12"
+            ry="14"
+            {...glowPaint(s("heart"), active("heart"))}
+          />
         </RegionGroup>
 
         <RegionGroup
@@ -228,20 +445,16 @@ export function BodyAnatomySvg({
           active={active("liver")}
           title="Liver"
           onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
         >
-          <CriticalGlow
-            style={s("liver")}
-            glow={<rect x={150} y={163} width={36} height={40} rx={12} />}
-          >
-            <rect
-              x={152}
-              y={165}
-              width={32}
-              height={36}
-              rx={10}
-              {...organPaint(s("liver"), active("liver"))}
-            />
-          </CriticalGlow>
+          <ellipse
+            cx="252"
+            cy="170"
+            rx="14"
+            ry="11"
+            {...glowPaint(s("liver"), active("liver"))}
+          />
         </RegionGroup>
 
         <RegionGroup
@@ -249,13 +462,16 @@ export function BodyAnatomySvg({
           active={active("stomach")}
           title="Digestion"
           onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
         >
-          <CriticalGlow
-            style={s("stomach")}
-            glow={<ellipse cx={128} cy={200} rx={22} ry={20} />}
-          >
-            <ellipse cx={128} cy={200} rx={18} ry={16} {...organPaint(s("stomach"), active("stomach"))} />
-          </CriticalGlow>
+          <ellipse
+            cx="208"
+            cy="220"
+            rx="13"
+            ry="11"
+            {...glowPaint(s("stomach"), active("stomach"))}
+          />
         </RegionGroup>
 
         <RegionGroup
@@ -263,19 +479,40 @@ export function BodyAnatomySvg({
           active={active("kidneys")}
           title="Kidneys"
           onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
         >
-          <CriticalGlow
-            style={s("kidneys")}
-            glow={
-              <>
-                <ellipse cx={115} cy={228} rx={16} ry={21} />
-                <ellipse cx={165} cy={228} rx={16} ry={21} />
-              </>
-            }
-          >
-            <ellipse cx={115} cy={228} rx={12} ry={17} {...organPaint(s("kidneys"), active("kidneys"))} />
-            <ellipse cx={165} cy={228} rx={12} ry={17} {...organPaint(s("kidneys"), active("kidneys"))} />
-          </CriticalGlow>
+          <ellipse
+            cx="188"
+            cy="254"
+            rx="9"
+            ry="12"
+            {...glowPaint(s("kidneys"), active("kidneys"))}
+          />
+          <ellipse
+            cx="252"
+            cy="254"
+            rx="9"
+            ry="12"
+            {...glowPaint(s("kidneys"), active("kidneys"))}
+          />
+        </RegionGroup>
+
+        <RegionGroup
+          region="blood"
+          active={active("blood")}
+          title="Blood"
+          onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
+        >
+          <ellipse
+            cx="220"
+            cy="290"
+            rx="16"
+            ry="9"
+            {...glowPaint(s("blood"), active("blood"))}
+          />
         </RegionGroup>
 
         <RegionGroup
@@ -283,79 +520,39 @@ export function BodyAnatomySvg({
           active={active("bones")}
           title="Minerals"
           onSelect={onSelectRegion}
+          onHover={onHover}
+          onLeave={onLeave}
         >
-          <CriticalGlow
-            style={s("bones")}
-            glow={
-              <>
-                <ellipse cx={108} cy={420} rx={18} ry={46} />
-                <ellipse cx={172} cy={420} rx={18} ry={46} />
-              </>
-            }
-          >
-            <ellipse cx={108} cy={420} rx={14} ry={42} {...organPaint(s("bones"), active("bones"))} />
-            <ellipse cx={172} cy={420} rx={14} ry={42} {...organPaint(s("bones"), active("bones"))} />
-          </CriticalGlow>
+          <ellipse
+            cx="188"
+            cy="400"
+            rx="10"
+            ry="38"
+            {...glowPaint(s("bones"), active("bones"))}
+          />
+          <ellipse
+            cx="252"
+            cy="400"
+            rx="10"
+            ry="38"
+            {...glowPaint(s("bones"), active("bones"))}
+          />
         </RegionGroup>
       </g>
 
-      {/* Annotations */}
+      {/* X-ray diagnostic annotations — labels live in side margins only */}
       <g>
-        {annotations.map((a) => {
-          const line = annotationLine(
-            a.side,
-            a.labelX,
-            a.labelY,
-            a.organX,
-            a.organY
-          );
-          const textAnchor = a.side === "left" ? "start" : "end";
-
-          return (
-            <g
-              key={a.region}
-              className="cursor-pointer"
-              onClick={() => onSelectRegion(a.region)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") onSelectRegion(a.region);
-              }}
-            >
-              <line
-                x1={line.x1}
-                y1={line.y1}
-                x2={line.x2}
-                y2={line.y2}
-                stroke="#454760"
-                strokeWidth={0.8}
-              />
-              <circle cx={line.x2} cy={line.y2} r={2.5} fill={a.statusColor} />
-              <text
-                x={a.labelX}
-                y={a.labelY - 4}
-                fill={a.statusColor}
-                fontSize={11}
-                fontWeight={500}
-                fontFamily="var(--font-inter), Inter, sans-serif"
-                textAnchor={textAnchor}
-              >
-                {a.title}
-              </text>
-              <text
-                x={a.labelX}
-                y={a.labelY + 12}
-                fill={a.statusColor}
-                fillOpacity={0.7}
-                fontSize={10}
-                fontFamily="var(--font-inter), Inter, sans-serif"
-                textAnchor={textAnchor}
-              >
-                {a.statusLabel}
-              </text>
-            </g>
-          );
-        })}
+        {sortedAnnotations.map((a) => (
+          <DiagnosisAnnotation
+            key={a.region}
+            annotation={a}
+            index={annotationIndex(a.region)}
+            hovered={hoveredRegion === a.region}
+            onSelect={onSelectRegion}
+            onHover={onHover}
+            onLeave={onLeave}
+          />
+        ))}
       </g>
     </svg>
   );

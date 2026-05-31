@@ -1,16 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getVoiceIdsForLanguage,
-  TTS_MODEL,
-} from "@/lib/ttsVoices";
+import { truncateForTts } from "@/lib/ttsClient";
+import { getTtsConfig, type TtsConfig } from "@/lib/ttsVoices";
 
 async function synthesize(
   apiKey: string,
+  cfg: TtsConfig,
   voiceId: string,
+  modelId: string,
   text: string
-): Promise<Response> {
-  return fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+): Promise<ArrayBuffer | null> {
+  const body: Record<string, unknown> = {
+    text,
+    model_id: modelId,
+    voice_settings: cfg.voiceSettings,
+  };
+
+  if (cfg.languageCode) {
+    body.language_code = cfg.languageCode;
+  }
+
+  const params = new URLSearchParams({
+    output_format: cfg.outputFormat,
+    optimize_streaming_latency: "4",
+  });
+
+  const response = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?${params}`,
     {
       method: "POST",
       headers: {
@@ -18,16 +33,17 @@ async function synthesize(
         "Content-Type": "application/json",
         Accept: "audio/mpeg",
       },
-      body: JSON.stringify({
-        text: text.trim(),
-        model_id: TTS_MODEL,
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-        },
-      }),
+      body: JSON.stringify(body),
     }
   );
+
+  if (!response.ok) {
+    const err = await response.text();
+    console.error("ElevenLabs TTS error:", response.status, voiceId, modelId, err);
+    return null;
+  }
+
+  return response.arrayBuffer();
 }
 
 export async function POST(req: NextRequest) {
@@ -45,26 +61,41 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "text is required" }, { status: 400 });
     }
 
-    const voiceIds = getVoiceIdsForLanguage(
-      typeof language === "string" ? language : undefined
-    );
+    const lang = typeof language === "string" ? language : undefined;
+    const truncated = truncateForTts(text);
+    const cfg = getTtsConfig(lang);
 
-    let lastError = "";
-    for (const voiceId of voiceIds) {
-      const response = await synthesize(apiKey, voiceId, text);
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        const base64 = Buffer.from(arrayBuffer).toString("base64");
-        return NextResponse.json({ audio: base64 });
-      }
-      lastError = await response.text();
-      console.error("ElevenLabs TTS error:", response.status, voiceId, lastError);
+    const attempts: { voiceId: string; modelId: string }[] = [
+      { voiceId: cfg.voiceId, modelId: cfg.modelId },
+    ];
+    if (cfg.fallbackVoiceId && cfg.fallbackModelId) {
+      attempts.push({
+        voiceId: cfg.fallbackVoiceId,
+        modelId: cfg.fallbackModelId,
+      });
     }
 
-    return NextResponse.json(
-      { error: "Failed to generate speech" },
-      { status: 502 }
-    );
+    let audioBuffer: ArrayBuffer | null = null;
+
+    for (const { voiceId, modelId } of attempts) {
+      audioBuffer = await synthesize(apiKey, cfg, voiceId, modelId, truncated);
+      if (audioBuffer) break;
+    }
+
+    if (!audioBuffer) {
+      return NextResponse.json(
+        { error: "Failed to generate speech" },
+        { status: 502 }
+      );
+    }
+
+    return new NextResponse(audioBuffer, {
+      status: 200,
+      headers: {
+        "Content-Type": "audio/mpeg",
+        "Cache-Control": "private, max-age=3600",
+      },
+    });
   } catch (error) {
     console.error("tts agent error:", error);
     return NextResponse.json(

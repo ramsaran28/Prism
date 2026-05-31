@@ -118,24 +118,24 @@ export interface OrganStyle {
 }
 
 const GLOW_STYLES: Record<OrganVisualSeverity, OrganStyle> = {
-  hh: { fill: "#F04060", fillOpacity: 0.5, stroke: "#F04060", visual: "hh" },
-  ll: { fill: "#F04060", fillOpacity: 0.5, stroke: "#F04060", visual: "ll" },
+  hh: { fill: "#C4617A", fillOpacity: 0.5, stroke: "#C4617A", visual: "hh" },
+  ll: { fill: "#C4617A", fillOpacity: 0.5, stroke: "#C4617A", visual: "ll" },
   h_or_l: {
-    fill: "#F0A500",
+    fill: "#D4956A",
     fillOpacity: 0.45,
-    stroke: "#F0A500",
+    stroke: "#D4956A",
     visual: "h_or_l",
   },
   normal: {
-    fill: "#00C896",
+    fill: "#4ECBA8",
     fillOpacity: 0.35,
-    stroke: "#00C896",
+    stroke: "#4ECBA8",
     visual: "normal",
   },
   absent: {
-    fill: "#232536",
+    fill: "#252830",
     fillOpacity: 0.6,
-    stroke: "#454760",
+    stroke: "#3E4260",
     visual: "absent",
   },
 };
@@ -312,13 +312,13 @@ export function getSimpleStatus(visual: OrganVisualSeverity): {
   switch (visual) {
     case "hh":
     case "ll":
-      return { label: "Critical", color: "#F04060" };
+      return { label: "Critical", color: "#C4617A" };
     case "h_or_l":
-      return { label: "Needs attention", color: "#F0A500" };
+      return { label: "Needs attention", color: "#D4956A" };
     case "normal":
-      return { label: "Healthy", color: "#00C896" };
+      return { label: "Healthy", color: "#4ECBA8" };
     default:
-      return { label: "Not tested", color: "#454760" };
+      return { label: "Not tested", color: "#3E4260" };
   }
 }
 
@@ -433,20 +433,74 @@ const ANNOTATION_LAYOUT: Record<
     side: "left" | "right";
   }
 > = {
-  brain: { organX: 140, organY: 44, labelX: 8, labelY: 44, side: "left" },
-  heart: { organX: 125, organY: 148, labelX: 8, labelY: 148, side: "left" },
-  stomach: { organX: 128, organY: 200, labelX: 8, labelY: 200, side: "left" },
-  blood: { organX: 140, organY: 190, labelX: 8, labelY: 240, side: "left" },
-  thyroid: { organX: 140, organY: 96, labelX: 272, labelY: 96, side: "right" },
-  liver: { organX: 168, organY: 183, labelX: 272, labelY: 183, side: "right" },
-  kidneys: { organX: 140, organY: 228, labelX: 272, labelY: 228, side: "right" },
-  bones: { organX: 140, organY: 420, labelX: 272, labelY: 420, side: "right" },
+  brain: { organX: 220, organY: 50, labelX: 20, labelY: 52, side: "left" },
+  heart: { organX: 198, organY: 150, labelX: 20, labelY: 150, side: "left" },
+  stomach: {
+    organX: 208,
+    organY: 220,
+    labelX: 20,
+    labelY: 220,
+    side: "left",
+  },
+  blood: { organX: 220, organY: 290, labelX: 20, labelY: 290, side: "left" },
+  thyroid: {
+    organX: 220,
+    organY: 98,
+    labelX: 360,
+    labelY: 98,
+    side: "right",
+  },
+  liver: { organX: 252, organY: 170, labelX: 360, labelY: 170, side: "right" },
+  kidneys: {
+    organX: 220,
+    organY: 254,
+    labelX: 360,
+    labelY: 254,
+    side: "right",
+  },
+  bones: { organX: 220, organY: 400, labelX: 360, labelY: 400, side: "right" },
 };
 
-/** Custom SVG body diagram dimensions. */
+/** Keep stacked labels from overlapping on the same side. */
+function spreadAnnotationLabels(
+  layouts: typeof ANNOTATION_LAYOUT
+): Record<MapRegionId, { labelY: number }> {
+  const MIN_GAP = 38;
+  const result = {} as Record<MapRegionId, { labelY: number }>;
+  const sides: ("left" | "right")[] = ["left", "right"];
+
+  for (const side of sides) {
+    const entries = (Object.keys(layouts) as MapRegionId[])
+      .filter((r) => layouts[r].side === side)
+      .map((r) => ({ region: r, labelY: layouts[r].labelY }))
+      .sort((a, b) => a.labelY - b.labelY);
+
+    let prevY = -Infinity;
+    for (const { region, labelY } of entries) {
+      const y = labelY - prevY < MIN_GAP ? prevY + MIN_GAP : labelY;
+      result[region] = { labelY: y };
+      prevY = y;
+    }
+  }
+
+  return result;
+}
+
+/** Front-view figure on the illustration panel — labels sit in margins outside these edges. */
 export const BODY_FIGURE = {
-  width: 280,
-  height: 560,
+  panelX: 86,
+  panelY: 10,
+  panelW: 268,
+  panelH: 540,
+  x: 92,
+  y: 14,
+  width: 256,
+  height: 532,
+  /** Left/right edges of the body panel for routing annotation lines. */
+  edgeLeft: 86,
+  edgeRight: 354,
+  labelMarginLeft: 20,
+  labelMarginRight: 360,
 };
 
 const LEFT_REGIONS: MapRegionId[] = ["brain", "heart", "stomach", "blood"];
@@ -462,6 +516,7 @@ export function buildBodyMapAnnotations(
 ): BodyMapAnnotation[] {
   const bySystem = new Map(systems.map((s) => [s.id, s]));
   const regions = [...LEFT_REGIONS, ...RIGHT_REGIONS];
+  const spread = spreadAnnotationLabels(ANNOTATION_LAYOUT);
 
   return regions.map((region) => {
     const layout = ANNOTATION_LAYOUT[region];
@@ -474,7 +529,7 @@ export function buildBodyMapAnnotations(
       organX: layout.organX,
       organY: layout.organY,
       labelX: layout.labelX,
-      labelY: layout.labelY,
+      labelY: spread[region]?.labelY ?? layout.labelY,
       side: layout.side,
       title: REGION_LABELS[region],
       statusLabel: status.label,

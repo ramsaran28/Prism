@@ -27,7 +27,7 @@ export function ValueAnalysisSection({
     <section className="card-surface overflow-hidden !p-0">
       <div className="border-b border-border px-7 py-5">
         <div className="section-title-row">
-          <h2 className="type-h2">Live value analysis</h2>
+          <h2 className="type-section-title">Live value analysis</h2>
           <SectionInfoButton
             modalTitle="How to read this chart"
             ariaLabel="How to read this chart"
@@ -40,15 +40,15 @@ export function ValueAnalysisSection({
             <InfoBullet>Normal Zone — your value is right where it should be</InfoBullet>
             <InfoBullet>Too High — your value is above the healthy range</InfoBullet>
             <p>Bar colors tell you the status at a glance:</p>
-            <InfoBullet color="#00C896">Green bar — value is normal</InfoBullet>
-            <InfoBullet color="#F0A500">Amber bar — slightly outside normal</InfoBullet>
-            <InfoBullet color="#F04060">Red bar — needs attention</InfoBullet>
+            <InfoBullet color="#4ECBA8">Green bar — value is normal</InfoBullet>
+            <InfoBullet color="#D4956A">Amber bar — slightly outside normal</InfoBullet>
+            <InfoBullet color="#C4617A">Red bar — needs attention</InfoBullet>
             <p>
               Hover over any bar to see more detail about that specific value.
             </p>
           </SectionInfoButton>
         </div>
-        <p className="mt-1 text-xs text-text-secondary">
+        <p className="type-analysis-subtitle mt-1">
           Your 7 most important results
         </p>
       </div>

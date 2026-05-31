@@ -14,19 +14,19 @@ export function SeverityBanner({ severity }: SeverityBannerProps) {
 
   const styles = {
     green: {
-      border: "0.5px solid #00C89630",
-      background: "#00C89608",
-      color: "#00C896",
+      border: "0.5px solid #4ECBA830",
+      background: "#4ECBA808",
+      color: "#4ECBA8",
     },
     amber: {
-      border: "0.5px solid #F0A50030",
-      background: "#F0A50008",
-      color: "#F0A500",
+      border: "0.5px solid #D4956A30",
+      background: "#D4956A08",
+      color: "#D4956A",
     },
     red: {
-      border: "0.5px solid #F0406030",
-      background: "#F0406008",
-      color: "#F04060",
+      border: "0.5px solid #C4617A30",
+      background: "#C4617A08",
+      color: "#C4617A",
     },
   };
 
@@ -39,7 +39,6 @@ export function SeverityBanner({ severity }: SeverityBannerProps) {
         border: s.border,
         background: s.background,
         color: s.color,
-        fontSize: 14,
       }}
       role="status"
     >

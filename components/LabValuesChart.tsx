@@ -48,7 +48,7 @@ function YAxisTick(props: {
   const x = Number(props.x ?? 0);
   const y = Number(props.y ?? 0);
   const lines = wrapLabel(String(props.payload?.value ?? ""));
-  const lineHeight = 12 * 1.4;
+  const lineHeight = 14 * 1.4;
 
   return (
     <g transform={`translate(${x},${y})`}>
@@ -65,8 +65,8 @@ function YAxisTick(props: {
                 : lineHeight / 2 + 4
           }
           textAnchor="end"
-          fill="#454760"
-          fontSize={12}
+          fill="#8E92A8"
+          fontSize={14}
           style={{ lineHeight: 1.4 }}
         >
           {line}
@@ -87,14 +87,14 @@ function ChartTooltip({
   const row = payload[0].payload;
   return (
     <div className="chart-tooltip max-w-xs">
-      <p className="text-[13px] font-normal text-text-primary">
+      <p className="text-[15px] font-normal text-text-primary">
         {row.plainName} —{" "}
         <span className="value-mono">{row.valueLabel}</span>
       </p>
-      <p className="mt-2 text-[13px] leading-relaxed text-text-secondary">
+      <p className="mt-2 text-[15px] leading-relaxed text-text-secondary">
         {row.warmDetail}
       </p>
-      <p className="mt-2 text-[13px] font-medium text-text-primary">
+      <p className="mt-2 text-[15px] font-medium text-text-primary">
         {row.statusLine}
       </p>
     </div>
@@ -122,7 +122,7 @@ function MetricCard({
       <p
         className="mt-1"
         style={{
-          fontSize: 12,
+          fontSize: 14,
           fontFamily: "var(--font-inter), Inter, sans-serif",
           color: "#8B8FA8",
         }}
@@ -135,10 +135,10 @@ function MetricCard({
 
 function ZoneLegend() {
   return (
-    <div className="mb-4 flex flex-wrap gap-4 text-xs">
-      <span style={{ color: "#5B8DEF", fontWeight: 500 }}>Too Low</span>
-      <span style={{ color: "#00C896", fontWeight: 500 }}>Normal Zone</span>
-      <span style={{ color: "#F04060", fontWeight: 500 }}>Too High</span>
+    <div className="mb-4 flex flex-wrap gap-4 text-[14px]">
+      <span style={{ color: "#6B8FCC", fontWeight: 500 }}>Too Low</span>
+      <span style={{ color: "#4ECBA8", fontWeight: 500 }}>Normal Zone</span>
+      <span style={{ color: "#C4617A", fontWeight: 500 }}>Too High</span>
     </div>
   );
 }
@@ -202,34 +202,34 @@ export function LabValuesChart({ values, allValues = [] }: LabValuesChartProps) 
             <ReferenceArea
               x1={0}
               x2={20}
-              fill="#5B8DEF"
+              fill="#6B8FCC"
               fillOpacity={0.1}
               ifOverflow="extendDomain"
             />
             <ReferenceArea
               x1={20}
               x2={80}
-              fill="#00C896"
+              fill="#4ECBA8"
               fillOpacity={0.08}
               ifOverflow="extendDomain"
             />
             <ReferenceArea
               x1={80}
               x2={100}
-              fill="#F04060"
+              fill="#C4617A"
               fillOpacity={0.1}
               ifOverflow="extendDomain"
             />
             <ReferenceLine
               x={20}
-              stroke="#5B8DEF"
+              stroke="#6B8FCC"
               strokeOpacity={0.35}
               strokeWidth={1}
               strokeDasharray="4 4"
             />
             <ReferenceLine
               x={80}
-              stroke="#F04060"
+              stroke="#C4617A"
               strokeOpacity={0.35}
               strokeWidth={1}
               strokeDasharray="4 4"
@@ -238,8 +238,8 @@ export function LabValuesChart({ values, allValues = [] }: LabValuesChartProps) 
               type="number"
               domain={domain}
               ticks={[0, 50, 100]}
-              tick={{ fill: "#454760", fontSize: 12 }}
-              axisLine={{ stroke: "#232536" }}
+              tick={{ fill: "#8E92A8", fontSize: 14 }}
+              axisLine={{ stroke: "#32364A" }}
               tickLine={false}
               tickFormatter={(v) => CHART_AXIS_LABELS[v as number] ?? ""}
             />
@@ -291,12 +291,12 @@ export function LabValuesChart({ values, allValues = [] }: LabValuesChartProps) 
                   onClick={() => openWhy(row)}
                   className="opacity-0 transition-opacity duration-150 ease-in-out group-hover:opacity-100"
                   style={{
-                    fontSize: 11,
+                    fontSize: 12,
                     fontFamily: "var(--font-inter), Inter, sans-serif",
                     fontWeight: 500,
                     color: "#8B8FA8",
-                    background: "#16181F",
-                    border: "0.5px solid #232536",
+                    background: "#252830",
+                    border: "0.5px solid #32364A",
                     borderRadius: 99,
                     padding: "3px 10px",
                     cursor: "pointer",

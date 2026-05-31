@@ -62,7 +62,7 @@ export default function HomePage() {
             Ever.
           </p>
 
-          <div className="card-surface mb-10 inline-flex items-center gap-2 px-5 py-2.5 text-sm text-text-secondary">
+          <div className="card-surface mb-10 inline-flex items-center gap-2 px-5 py-2.5 text-[15px] text-text-secondary">
             <Shield className="h-4 w-4 text-accent" strokeWidth={1.5} />
             Zero storage. Your report never leaves your session.
           </div>
@@ -85,10 +85,10 @@ export default function HomePage() {
               {uploading ? "Preparing…" : "Upload your report"}
               <ArrowRight className="btn-upload-arrow h-4 w-4" />
             </button>
-            <p className="text-xs text-text-tertiary">PDF, JPG, or PNG</p>
+            <p className="text-[14px] text-text-tertiary">PDF, JPG, or PNG</p>
           </div>
 
-          <p className="text-xs text-text-secondary">
+          <p className="text-[14px] text-text-secondary">
             This is not medical advice. Please consult a qualified doctor.
           </p>
         </div>

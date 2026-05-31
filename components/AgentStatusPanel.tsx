@@ -79,27 +79,27 @@ function statusLabel(status: AgentStatus): string {
 }
 
 function statusTextColor(status: AgentStatus): string {
-  if (status === "waiting") return "#454760";
-  if (status === "running") return "#F0A500";
-  return "#00C896";
+  if (status === "waiting") return "#3E4260";
+  if (status === "running") return "#D4956A";
+  return "#4ECBA8";
 }
 
 function agentItemColors(status: AgentStatus, isActive: boolean) {
   if (isActive) {
     return {
-      icon: status === "waiting" ? "#454760" : status === "running" ? "#F0A500" : "#00C896",
-      name: "#EEEEF0",
-      bg: "#16181F",
-      border: "#00C896",
+      icon: status === "waiting" ? "#3E4260" : status === "running" ? "#D4956A" : "#4ECBA8",
+      name: "#E8EAF2",
+      bg: "#252830",
+      border: "#4ECBA8",
     };
   }
   if (status === "waiting") {
-    return { icon: "#454760", name: "#454760", bg: "transparent", border: "transparent" };
+    return { icon: "#3E4260", name: "#8E92A8", bg: "transparent", border: "transparent" };
   }
   if (status === "running") {
-    return { icon: "#F0A500", name: "#EEEEF0", bg: "transparent", border: "transparent" };
+    return { icon: "#D4956A", name: "#E8EAF2", bg: "transparent", border: "transparent" };
   }
-  return { icon: "#00C896", name: "#EEEEF0", bg: "transparent", border: "transparent" };
+  return { icon: "#4ECBA8", name: "#E8EAF2", bg: "transparent", border: "transparent" };
 }
 
 export function AgentStatusPanel({
@@ -154,7 +154,7 @@ export function AgentStatusPanel({
   return (
     <aside
       className="flex w-[220px] shrink-0 flex-col bg-sidebar"
-      style={{ borderRight: "0.5px solid #232536" }}
+      style={{ borderRight: "0.5px solid #32364A" }}
       aria-label="Analysis progress"
     >
       <div
@@ -162,31 +162,16 @@ export function AgentStatusPanel({
         style={{ padding: "20px 16px" }}
       >
         <div className="flex items-center gap-2">
-          <PrismIcon size={20} />
-          <span className="logo-text">Prism</span>
+          <PrismIcon size={22} />
+          <span className="sidebar-logo-text">Prism</span>
         </div>
-        <p
-          className="mt-1"
-          style={{
-            fontSize: 10,
-            fontFamily: "var(--font-inter), Inter, sans-serif",
-            color: "#454760",
-            letterSpacing: "0.3px",
-          }}
-        >
-          Medical Intelligence
-        </p>
+        <p className="sidebar-tagline mt-1">Medical Intelligence</p>
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto px-2 py-2">
         <p
-          className="uppercase tracking-[1px]"
-          style={{
-            fontSize: 10,
-            fontFamily: "var(--font-inter), Inter, sans-serif",
-            color: "#454760",
-            padding: "16px 16px 8px",
-          }}
+          className="sidebar-agents-label"
+          style={{ padding: "16px 16px 8px" }}
         >
           Agents
         </p>
@@ -209,24 +194,21 @@ export function AgentStatusPanel({
                   style={{
                     padding: "10px 14px",
                     borderRadius: 10,
-                    background: isHovered || isActive ? "#16181F" : colors.bg,
-                    borderLeft: `2px solid ${isHovered || isActive ? "#00C896" : colors.border}`,
+                    background: isHovered || isActive ? "#252830" : colors.bg,
+                    borderLeft: `2px solid ${isHovered || isActive ? "#4ECBA8" : colors.border}`,
                     cursor: "pointer",
                   }}
                 >
                   <Icon
                     className="h-4 w-4 shrink-0"
-                    style={{ color: isHovered ? "#00C896" : colors.icon }}
+                    style={{ color: isHovered ? "#4ECBA8" : colors.icon }}
                     strokeWidth={1.5}
                     aria-hidden
                   />
                   <span
-                    className="min-w-0 flex-1"
+                    className="sidebar-agent-name min-w-0 flex-1"
                     style={{
-                      fontSize: 13,
-                      fontFamily: "var(--font-inter), Inter, sans-serif",
-                      fontWeight: 500,
-                      color: isHovered ? "#EEEEF0" : colors.name,
+                      color: isHovered ? "#E8EAF2" : colors.name,
                     }}
                   >
                     {name}
@@ -234,11 +216,8 @@ export function AgentStatusPanel({
                   <div className="flex shrink-0 items-center gap-1.5">
                     <StatusDot status={status} />
                     <span
-                      style={{
-                        fontSize: 10,
-                        fontFamily: "var(--font-inter), Inter, sans-serif",
-                        color: statusTextColor(status),
-                      }}
+                      className="sidebar-agent-status"
+                      style={{ color: statusTextColor(status) }}
                     >
                       {statusLabel(status)}
                     </span>
@@ -252,7 +231,7 @@ export function AgentStatusPanel({
         <div
           style={{
             height: 0.5,
-            background: "#232536",
+            background: "#32364A",
             margin: "12px 8px",
           }}
         />
@@ -264,37 +243,29 @@ export function AgentStatusPanel({
             padding: "10px 14px",
             borderRadius: 10,
             borderLeft: "2px solid transparent",
-            color: "#454760",
+            color: "#8E92A8",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#16181F";
-            e.currentTarget.style.borderLeftColor = "#00C896";
-            e.currentTarget.style.color = "#EEEEF0";
+            e.currentTarget.style.background = "#252830";
+            e.currentTarget.style.borderLeftColor = "#4ECBA8";
+            e.currentTarget.style.color = "#E8EAF2";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = "transparent";
             e.currentTarget.style.borderLeftColor = "transparent";
-            e.currentTarget.style.color = "#454760";
+            e.currentTarget.style.color = "#8E92A8";
           }}
         >
-          <BookOpen className="h-[15px] w-[15px] shrink-0" strokeWidth={1.5} />
-          <span
-            style={{
-              fontSize: 13,
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              fontWeight: 500,
-            }}
-          >
-            About Prism
-          </span>
+          <BookOpen className="h-4 w-4 shrink-0" strokeWidth={1.5} />
+          <span className="sidebar-about-link">About Prism</span>
         </Link>
       </div>
 
       <div className="p-2">
         <div
           style={{
-            background: "#00C89608",
-            border: "0.5px solid #00C89625",
+            background: "#4ECBA808",
+            border: "0.5px solid #4ECBA825",
             borderRadius: 8,
             padding: "10px 12px",
             margin: 8,
@@ -302,29 +273,13 @@ export function AgentStatusPanel({
         >
           <div className="flex items-center gap-2">
             <ShieldCheck
-              className="h-[13px] w-[13px] shrink-0"
-              style={{ color: "#00C896" }}
+              className="h-[14px] w-[14px] shrink-0"
+              style={{ color: "#4ECBA8" }}
               strokeWidth={1.5}
             />
-            <span
-              style={{
-                fontSize: 11,
-                fontFamily: "var(--font-inter), Inter, sans-serif",
-                fontWeight: 500,
-                color: "#00C896",
-              }}
-            >
-              Zero data stored
-            </span>
+            <span className="sidebar-privacy-title">Zero data stored</span>
           </div>
-          <p
-            className="mt-1 pl-[21px]"
-            style={{
-              fontSize: 10,
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              color: "#454760",
-            }}
-          >
+          <p className="sidebar-privacy-note mt-1 pl-[22px]">
             Session only · Nothing saved
           </p>
         </div>

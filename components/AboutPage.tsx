@@ -35,42 +35,42 @@ const AGENT_CARDS = [
   {
     number: "01",
     name: "SCAN",
-    badgeColor: "#00C896",
+    badgeColor: "#4ECBA8",
     description:
       "Reads every value, unit, and reference range from your report using Gemini's vision — PDFs, images, even handwritten notes.",
   },
   {
     number: "02",
     name: "RISK",
-    badgeColor: "#00C896",
+    badgeColor: "#4ECBA8",
     description:
       "Identifies which values are outside normal range, scores severity, and calculates a confidence level for each finding.",
   },
   {
     number: "03",
     name: "EXPLAIN",
-    badgeColor: "#00C896",
+    badgeColor: "#4ECBA8",
     description:
       "Writes a plain language summary — warm, honest, jargon-free. Starts with what's good. Always.",
   },
   {
     number: "04",
     name: "TRANSLATE",
-    badgeColor: "#00C896",
+    badgeColor: "#4ECBA8",
     description:
       "Converts your summary into any of 100+ languages while keeping the same caring tone throughout.",
   },
   {
     number: "05",
     name: "GUIDE",
-    badgeColor: "#00C896",
+    badgeColor: "#4ECBA8",
     description:
       "Creates a personal action plan and generates questions to bring to your next doctor's appointment.",
   },
   {
     number: "06",
     name: "SCORE",
-    badgeColor: "#F0A500",
+    badgeColor: "#D4956A",
     description:
       "Calculates an overall health score out of 100 based on correlated markers — giving you one simple number to track over time.",
   },
@@ -93,9 +93,9 @@ function SectionLabel({ children }: { children: string }) {
     <p
       className="mb-2 uppercase tracking-[1px]"
       style={{
-        fontSize: 11,
+        fontSize: 12,
         fontFamily: "var(--font-inter), Inter, sans-serif",
-        color: "#00C896",
+        color: "#4ECBA8",
         marginBottom: 8,
       }}
     >
@@ -114,8 +114,8 @@ function AgentCard({
     <div
       className="flex gap-4"
       style={{
-        background: "#16181F",
-        border: "0.5px solid #232536",
+        background: "#252830",
+        border: "0.5px solid #32364A",
         borderRadius: 12,
         padding: "16px 20px",
         marginBottom: 10,
@@ -140,7 +140,7 @@ function AgentCard({
             fontSize: 13,
             fontFamily: "var(--font-inter), Inter, sans-serif",
             fontWeight: 600,
-            color: "#EEEEF0",
+            color: "#E8EAF2",
             letterSpacing: "0.5px",
           }}
         >
@@ -180,7 +180,7 @@ export function AboutPage() {
     >
       <header
         style={{
-          borderBottom: "0.5px solid #232536",
+          borderBottom: "0.5px solid #32364A",
           padding: "16px 40px",
         }}
       >
@@ -197,7 +197,7 @@ export function AboutPage() {
               color: "#8B8FA8",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#EEEEF0";
+              e.currentTarget.style.color = "#E8EAF2";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = "#8B8FA8";
@@ -221,11 +221,11 @@ export function AboutPage() {
           <h1
             className="mb-6 whitespace-pre-line italic"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
               fontSize: 36,
               fontWeight: 300,
               fontStyle: "italic",
-              color: "#EEEEF0",
+              color: "#E8EAF2",
               lineHeight: 1.25,
             }}
           >
@@ -254,11 +254,11 @@ export function AboutPage() {
           <h2
             className="mb-6 italic"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
               fontSize: 26,
               fontWeight: 400,
               fontStyle: "italic",
-              color: "#EEEEF0",
+              color: "#E8EAF2",
               lineHeight: 1.35,
             }}
           >
@@ -269,8 +269,8 @@ export function AboutPage() {
               <div
                 key={title}
                 style={{
-                  borderLeft: "2px solid #F0406020",
-                  background: "#16181F",
+                  borderLeft: "2px solid #C4617A20",
+                  background: "#252830",
                   borderRadius: 12,
                   padding: "16px 20px",
                   marginBottom: 12,
@@ -279,7 +279,7 @@ export function AboutPage() {
                 <div className="mb-2 flex items-center gap-2.5">
                   <Icon
                     className="h-5 w-5 shrink-0"
-                    style={{ color: "#F04060" }}
+                    style={{ color: "#C4617A" }}
                     strokeWidth={1.5}
                   />
                   <h3
@@ -287,7 +287,7 @@ export function AboutPage() {
                       fontSize: 15,
                       fontFamily: "var(--font-inter), Inter, sans-serif",
                       fontWeight: 500,
-                      color: "#EEEEF0",
+                      color: "#E8EAF2",
                     }}
                   >
                     {title}
@@ -314,10 +314,10 @@ export function AboutPage() {
           <h2
             className="mb-4"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
               fontSize: 26,
               fontWeight: 400,
-              color: "#EEEEF0",
+              color: "#E8EAF2",
               lineHeight: 1.35,
             }}
           >
@@ -346,11 +346,11 @@ export function AboutPage() {
           <h2
             className="mb-6 italic"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
               fontSize: 26,
               fontWeight: 400,
               fontStyle: "italic",
-              color: "#EEEEF0",
+              color: "#E8EAF2",
               lineHeight: 1.35,
             }}
           >
@@ -359,8 +359,8 @@ export function AboutPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div
               style={{
-                borderLeft: "2px solid #00C89620",
-                background: "#16181F",
+                borderLeft: "2px solid #4ECBA820",
+                background: "#252830",
                 borderRadius: 12,
                 padding: 20,
               }}
@@ -368,9 +368,9 @@ export function AboutPage() {
               <span
                 className="mb-2 block leading-none"
                 style={{
-                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
                   fontSize: 40,
-                  color: "#00C89620",
+                  color: "#4ECBA820",
                 }}
                 aria-hidden
               >
@@ -379,10 +379,10 @@ export function AboutPage() {
               <p
                 className="mb-4 italic"
                 style={{
-                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
                   fontSize: 16,
                   fontStyle: "italic",
-                  color: "#EEEEF0",
+                  color: "#E8EAF2",
                   lineHeight: 1.6,
                 }}
               >
@@ -392,9 +392,9 @@ export function AboutPage() {
               </p>
               <p
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   fontFamily: "var(--font-inter), Inter, sans-serif",
-                  color: "#454760",
+                  color: "#8E92A8",
                 }}
               >
                 — The reason Prism exists
@@ -402,8 +402,8 @@ export function AboutPage() {
             </div>
             <div
               style={{
-                borderLeft: "2px solid #00C89620",
-                background: "#16181F",
+                borderLeft: "2px solid #4ECBA820",
+                background: "#252830",
                 borderRadius: 12,
                 padding: 20,
               }}
@@ -411,9 +411,9 @@ export function AboutPage() {
               <span
                 className="mb-2 block leading-none"
                 style={{
-                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
                   fontSize: 40,
-                  color: "#00C89620",
+                  color: "#4ECBA820",
                 }}
                 aria-hidden
               >
@@ -422,10 +422,10 @@ export function AboutPage() {
               <p
                 className="mb-4 italic"
                 style={{
-                  fontFamily: "var(--font-fraunces), Fraunces, serif",
+                  fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
                   fontSize: 16,
                   fontStyle: "italic",
-                  color: "#EEEEF0",
+                  color: "#E8EAF2",
                   lineHeight: 1.6,
                 }}
               >
@@ -434,9 +434,9 @@ export function AboutPage() {
               </p>
               <p
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   fontFamily: "var(--font-inter), Inter, sans-serif",
-                  color: "#454760",
+                  color: "#8E92A8",
                 }}
               >
                 — Our design principle
@@ -451,10 +451,10 @@ export function AboutPage() {
           <h2
             className="mb-4"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
               fontSize: 26,
               fontWeight: 400,
-              color: "#EEEEF0",
+              color: "#E8EAF2",
               lineHeight: 1.35,
             }}
           >
@@ -488,15 +488,15 @@ export function AboutPage() {
             <div
               className="inline-flex flex-col items-center text-center"
               style={{
-                background: "#00C8960F",
-                border: "0.5px solid #00C89630",
+                background: "#4ECBA80F",
+                border: "0.5px solid #4ECBA830",
                 borderRadius: 12,
                 padding: "20px 32px",
               }}
             >
               <ShieldCheck
                 className="mb-2 h-5 w-5"
-                style={{ color: "#00C896" }}
+                style={{ color: "#4ECBA8" }}
                 strokeWidth={1.5}
               />
               <p
@@ -505,7 +505,7 @@ export function AboutPage() {
                   fontSize: 14,
                   fontFamily: "var(--font-inter), Inter, sans-serif",
                   fontWeight: 500,
-                  color: "#00C896",
+                  color: "#4ECBA8",
                 }}
               >
                 Zero storage · Zero tracking · Zero data retained
@@ -514,7 +514,7 @@ export function AboutPage() {
                 style={{
                   fontSize: 12,
                   fontFamily: "var(--font-inter), Inter, sans-serif",
-                  color: "#454760",
+                  color: "#8E92A8",
                 }}
               >
                 Your report disappears when you close this tab.
@@ -529,10 +529,10 @@ export function AboutPage() {
           <h2
             className="mb-6"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
               fontSize: 24,
               fontWeight: 400,
-              color: "#EEEEF0",
+              color: "#E8EAF2",
             }}
           >
             The technology behind Prism
@@ -542,8 +542,8 @@ export function AboutPage() {
               <span
                 key={pill}
                 style={{
-                  background: "#16181F",
-                  border: "0.5px solid #232536",
+                  background: "#252830",
+                  border: "0.5px solid #32364A",
                   borderRadius: 99,
                   padding: "8px 16px",
                   fontSize: 13,
@@ -566,11 +566,11 @@ export function AboutPage() {
           <h2
             className="mb-6 italic"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
               fontSize: 24,
               fontWeight: 300,
               fontStyle: "italic",
-              color: "#EEEEF0",
+              color: "#E8EAF2",
             }}
           >
             Ready to understand your report?
@@ -586,9 +586,9 @@ export function AboutPage() {
           <p
             className="mt-2.5"
             style={{
-              fontSize: 11,
+              fontSize: 12,
               fontFamily: "var(--font-inter), Inter, sans-serif",
-              color: "#454760",
+              color: "#8E92A8",
             }}
           >
             Free · No account · Nothing saved

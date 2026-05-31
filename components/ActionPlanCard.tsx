@@ -13,7 +13,7 @@ export function ActionPlanCard({ guide }: ActionPlanCardProps) {
   return (
     <section className="card-surface">
       <div className="section-title-row mb-5">
-        <h2 className="type-h2">Your action plan</h2>
+        <h2 className="type-section-title">Your action plan</h2>
         <SectionInfoButton
           modalTitle="About your action plan"
           ariaLabel="About your action plan"
@@ -45,7 +45,7 @@ export function ActionPlanCard({ guide }: ActionPlanCardProps) {
       </div>
       {guide.questions.length > 0 && (
         <>
-          <p className="type-card-title mb-3">Questions for your doctor</p>
+          <p className="type-questions-label mb-3">Questions for your doctor</p>
           <div>
             {guide.questions.map((q, i) => (
               <div key={i} className="action-plan-question">

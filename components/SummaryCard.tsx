@@ -17,7 +17,7 @@ export function SummaryCard({ text, streaming }: SummaryCardProps) {
   return (
     <section className="card-surface">
       <div className="section-title-row mb-5">
-        <h2 className="type-h2">Plain language summary</h2>
+        <h2 className="type-section-title">Plain language summary</h2>
         <SectionInfoButton
           modalTitle="About this summary"
           ariaLabel="About this summary"

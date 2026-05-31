@@ -45,7 +45,7 @@ const EMPTY_RISK: RiskResult = {
  *   SCAN
  *     ├─ RISK ──┬─ GUIDE
  *     │         └─ SCORE
- *     └─ EXPLAIN ── TRANSLATE
+ *     └─ EXPLAIN (after RISK) ── TRANSLATE
  */
 export async function runAgentsInParallel(
   session: SessionPayload,
@@ -61,11 +61,13 @@ export async function runAgentsInParallel(
       const scan = await withMinimumDelay(AGENT_MIN_MS.scan, () =>
         callScanAgent(session)
       );
+      console.log("[Prism SCAN] values count:", scan.values?.length ?? 0, scan);
       callbacks.onScanResult(scan);
       onStatus("scan", "done");
       scanGate.resolve(scan);
       return scan;
-    } catch {
+    } catch (err) {
+      console.error("[Prism SCAN] failed:", err);
       await delay(AGENT_MIN_MS.scan);
       onStatus("scan", "done");
       callbacks.onError(
@@ -84,11 +86,13 @@ export async function runAgentsInParallel(
       const risk = await withMinimumDelay(AGENT_MIN_MS.risk, () =>
         callRiskAgent(scan.values)
       );
+      console.log("[Prism RISK] severity:", risk.severity, risk);
       callbacks.onRiskResult(risk);
       onStatus("risk", "done");
       riskGate.resolve(risk);
       return risk;
-    } catch {
+    } catch (err) {
+      console.error("[Prism RISK] failed:", err);
       await delay(AGENT_MIN_MS.risk);
       onStatus("risk", "done");
       riskGate.resolve(EMPTY_RISK);
@@ -98,26 +102,35 @@ export async function runAgentsInParallel(
 
   const explainTask = (async () => {
     onStatus("explain", "waiting");
-    const scan = await scanGate.promise;
+    const [scan, risk] = await Promise.all([
+      scanGate.promise,
+      riskGate.promise,
+    ]);
     onStatus("explain", "running");
     callbacks.onExplainStart();
     const started = Date.now();
     try {
+      console.log("[Prism EXPLAIN] input values:", scan.values?.length ?? 0, "risk:", risk.severity);
       const summary = await streamExplainAgent(
         scan.values,
-        EMPTY_RISK,
+        risk,
         callbacks.onExplainChunk
       );
+      console.log("[Prism EXPLAIN] summary length:", summary.length);
       const remaining = AGENT_MIN_MS.explain - (Date.now() - started);
       if (remaining > 0) await delay(remaining);
       onStatus("explain", "done");
       callbacks.onExplainEnd();
       return summary;
-    } catch {
+    } catch (err) {
+      console.error("[Prism EXPLAIN] failed:", err);
       const remaining = AGENT_MIN_MS.explain - (Date.now() - started);
       if (remaining > 0) await delay(remaining);
       onStatus("explain", "done");
       callbacks.onExplainEnd();
+      callbacks.onError(
+        "We could not generate your plain language summary. Please try again."
+      );
       return "";
     }
   })();
@@ -130,9 +143,11 @@ export async function runAgentsInParallel(
       const guide = await withMinimumDelay(AGENT_MIN_MS.guide, () =>
         callGuideAgent(risk)
       );
+      console.log("[Prism GUIDE] steps:", guide.steps?.length ?? 0, guide);
       callbacks.onGuideResult(guide);
       onStatus("guide", "done");
-    } catch {
+    } catch (err) {
+      console.error("[Prism GUIDE] failed:", err);
       await delay(AGENT_MIN_MS.guide);
       onStatus("guide", "done");
     }
@@ -149,9 +164,11 @@ export async function runAgentsInParallel(
       const score = await withMinimumDelay(AGENT_MIN_MS.score, () =>
         callScoreAgent(scan.values, risk)
       );
+      console.log("[Prism SCORE] total:", score.totalScore, score);
       callbacks.onScoreResult(score);
       onStatus("score", "done");
-    } catch {
+    } catch (err) {
+      console.error("[Prism SCORE] failed:", err);
       await delay(AGENT_MIN_MS.score);
       onStatus("score", "done");
     }
@@ -161,19 +178,26 @@ export async function runAgentsInParallel(
     onStatus("translate", "waiting");
     const summary = await explainTask;
     if (!summary.trim()) {
+      console.warn("[Prism TRANSLATE] skipped — empty summary");
       onStatus("translate", "done");
       return;
     }
     onStatus("translate", "running");
     try {
+      console.log("[Prism TRANSLATE] input length:", summary.length, "lang:", session.language);
       const translation = await withMinimumDelay(AGENT_MIN_MS.translate, () =>
         callTranslateAgent(summary, session.language)
       );
+      console.log("[Prism TRANSLATE] output length:", translation.length);
       callbacks.onTranslation(translation, session.language);
       onStatus("translate", "done");
-    } catch {
+    } catch (err) {
+      console.error("[Prism TRANSLATE] failed:", err);
       await delay(AGENT_MIN_MS.translate);
       onStatus("translate", "done");
+      callbacks.onError(
+        "Translation could not be loaded. You can try another language."
+      );
     }
   })();
 

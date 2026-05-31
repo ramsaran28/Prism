@@ -17,6 +17,7 @@ import { PrivacyFooter } from "./PrivacyFooter";
 import { runAgentsInParallel } from "@/lib/agents/orchestrator";
 import { normalizeLabValues } from "@/lib/labValueNames";
 import { callTranslateAgent } from "@/lib/agents/client";
+import { prefetchTts } from "@/lib/ttsClient";
 import { loadSession, clearSession } from "@/lib/session";
 import type {
   AgentId,
@@ -39,7 +40,7 @@ const initialStatuses: Record<AgentId, AgentStatus> = {
 
 export function AnalyzeDashboard() {
   const router = useRouter();
-  const started = useRef(false);
+  const runIdRef = useRef(0);
   const topRef = useRef<HTMLDivElement>(null);
   const riskRef = useRef<HTMLDivElement>(null);
   const scoreRef = useRef<HTMLDivElement>(null);
@@ -72,50 +73,100 @@ export function AnalyzeDashboard() {
     setStatuses((s) => ({ ...s, [id]: status }));
   }, []);
 
-  const runAnalysis = useCallback(async () => {
-    const session = loadSession();
-    if (!session) {
-      router.replace("/");
-      return;
+  useEffect(() => {
+    let active = true;
+    const runId = ++runIdRef.current;
+    const isCurrent = () => active && runId === runIdRef.current;
+
+    async function runAnalysis() {
+      const session = loadSession();
+      if (!session) {
+        router.replace("/");
+        return;
+      }
+
+      console.log("[AnalyzeDashboard] starting run", runId, {
+        language: session.language,
+        mimeType: session.mimeType,
+      });
+
+      setActiveLang(session.language);
+      setStatuses({ ...initialStatuses });
+      setValues([]);
+      setSeverity(null);
+      setRisk(null);
+      setSummary("");
+      setTranslation(null);
+      setGuide(null);
+      setHealthScore(null);
+      setError(null);
+
+      await runAgentsInParallel(session, {
+        onStatus: (id, status) => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] status", id, status);
+          setAgent(id, status);
+        },
+        onScanResult: (scan) => {
+          if (!isCurrent()) return;
+          const normalized = normalizeLabValues(scan.values ?? []);
+          console.log("[AnalyzeDashboard] SCAN → state", normalized.length, "values");
+          setValues(normalized);
+        },
+        onRiskResult: (riskResult) => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] RISK → state", riskResult);
+          setRisk(riskResult);
+          setSeverity(riskResult.severity);
+        },
+        onExplainStart: () => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] EXPLAIN start");
+          setSummaryStreaming(true);
+        },
+        onExplainChunk: (text) => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] EXPLAIN chunk length", text.length);
+          setSummary(text);
+        },
+        onExplainEnd: () => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] EXPLAIN end");
+          setSummaryStreaming(false);
+        },
+        onGuideResult: (guideResult) => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] GUIDE → state", guideResult);
+          setGuide(guideResult);
+        },
+        onScoreResult: (score) => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] SCORE → state", score);
+          setHealthScore(score);
+        },
+        onTranslation: (text, lang) => {
+          if (!isCurrent()) return;
+          console.log("[AnalyzeDashboard] TRANSLATE → state", text.length, lang);
+          setTranslation(text);
+          setActiveLang(lang);
+          void prefetchTts(text, lang);
+        },
+        onError: (message) => {
+          if (!isCurrent()) return;
+          console.error("[AnalyzeDashboard] error", message);
+          setError(message);
+        },
+      });
+
+      console.log("[AnalyzeDashboard] run complete", runId);
     }
 
-    setActiveLang(session.language);
-    setStatuses(initialStatuses);
-    setValues([]);
-    setSeverity(null);
-    setRisk(null);
-    setSummary("");
-    setTranslation(null);
-    setGuide(null);
-    setHealthScore(null);
-    setError(null);
-
-    await runAgentsInParallel(session, {
-      onStatus: setAgent,
-      onScanResult: (scan) =>
-        setValues(normalizeLabValues(scan.values ?? [])),
-      onRiskResult: (riskResult) => {
-        setRisk(riskResult);
-        setSeverity(riskResult.severity);
-      },
-      onExplainStart: () => setSummaryStreaming(true),
-      onExplainChunk: setSummary,
-      onExplainEnd: () => setSummaryStreaming(false),
-      onGuideResult: setGuide,
-      onScoreResult: setHealthScore,
-      onTranslation: (text, lang) => {
-        setTranslation(text);
-        setActiveLang(lang);
-      },
-      onError: setError,
-    });
-  }, [router, setAgent]);
-
-  useEffect(() => {
-    if (started.current) return;
-    started.current = true;
     void runAnalysis();
-  }, [runAnalysis]);
+
+    return () => {
+      active = false;
+    };
+  }, [router, setAgent]);
 
   function handleStartOver() {
     clearSession();
@@ -128,9 +179,15 @@ export function AnalyzeDashboard() {
     setTranslation(null);
     setAgent("translate", "running");
     try {
+      console.log("[AnalyzeDashboard] manual translate", lang);
       const text = await callTranslateAgent(summary, lang);
+      console.log("[AnalyzeDashboard] manual translate result length", text.length);
       setTranslation(text);
       setActiveLang(lang);
+      void prefetchTts(text, lang);
+    } catch (err) {
+      console.error("[AnalyzeDashboard] manual translate failed", err);
+      setError("Translation could not be loaded. Please try again.");
     } finally {
       setAgent("translate", "done");
       setTranslateLoading(false);
@@ -154,7 +211,7 @@ export function AnalyzeDashboard() {
               <div ref={topRef} data-agent-section="scan" className="scroll-mt-20" />
 
               {error && (
-                <p className="mb-5 rounded-xl border border-danger/30 bg-danger-muted px-4 py-3 text-sm text-danger">
+                <p className="mb-5 rounded-xl border border-danger/30 bg-danger-muted px-4 py-3 text-[14px] text-danger">
                   {error}
                 </p>
               )}
@@ -200,7 +257,7 @@ export function AnalyzeDashboard() {
                 />
               </div>
 
-              <div className="flex justify-center pt-4">
+              <div className="flex justify-center" style={{ marginTop: 48, marginBottom: 48 }}>
                 <button
                   type="button"
                   onClick={handleStartOver}

@@ -101,8 +101,8 @@ export function InfoModal({
         className="relative w-[90%]"
         style={{
           maxWidth: 440,
-          background: "#16181F",
-          border: "0.5px solid #232536",
+          background: "#252830",
+          border: "0.5px solid #32364A",
           borderRadius: 16,
           padding: 28,
           opacity: visible ? 1 : 0,
@@ -120,10 +120,10 @@ export function InfoModal({
           <h2
             id="info-modal-title"
             style={{
-              fontFamily: "var(--font-fraunces), Fraunces, serif",
-              fontSize: 16,
+              fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
+              fontSize: 18,
               fontWeight: 400,
-              color: "#EEEEF0",
+              color: "#E8EAF2",
             }}
           >
             {title}
@@ -132,12 +132,12 @@ export function InfoModal({
             type="button"
             onClick={onClose}
             className="shrink-0 transition-colors duration-150"
-            style={{ color: "#454760", cursor: "pointer" }}
+            style={{ color: "#8E92A8", cursor: "pointer" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = "#8B8FA8";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#454760";
+              e.currentTarget.style.color = "#8E92A8";
             }}
             aria-label="Close"
           >
@@ -148,14 +148,14 @@ export function InfoModal({
         <div
           style={{
             height: 0.5,
-            background: "#232536",
+            background: "#32364A",
             margin: "12px 0",
           }}
         />
 
         <div
           style={{
-            fontSize: 14,
+            fontSize: 16,
             fontFamily: "var(--font-inter), Inter, sans-serif",
             color: "#8B8FA8",
             lineHeight: 1.75,
@@ -166,8 +166,8 @@ export function InfoModal({
             <p
               className="mt-4"
               style={{
-                fontSize: 11,
-                color: "#454760",
+                fontSize: 13,
+                color: "#8E92A8",
                 lineHeight: 1.75,
               }}
             >
@@ -183,9 +183,9 @@ export function InfoModal({
           style={{
             marginTop: 20,
             padding: 10,
-            background: "#00C896",
+            background: "#4ECBA8",
             color: "#0A0B0F",
-            fontSize: 14,
+            fontSize: 16,
             fontFamily: "var(--font-inter), Inter, sans-serif",
             fontWeight: 500,
             borderRadius: 10,

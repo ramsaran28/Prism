@@ -105,7 +105,7 @@ export function LanguagePicker({
               role="listbox"
             >
               {filtered.length === 0 ? (
-                <li className="px-3 py-2 text-[13px] text-text-secondary">
+                <li className="px-3 py-2 text-[15px] text-text-secondary">
                   No languages found
                 </li>
               ) : (
@@ -118,7 +118,7 @@ export function LanguagePicker({
                     <button
                       type="button"
                       onClick={() => selectLanguage(lang)}
-                      className={`flex w-full px-3 py-2 text-left text-[13px] transition hover:bg-card-hover ${
+                      className={`flex w-full px-3 py-2 text-left text-[15px] transition hover:bg-card-hover ${
                         activeLanguage === lang.name
                           ? "bg-accent-muted text-accent"
                           : "text-text-primary"

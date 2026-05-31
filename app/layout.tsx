@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
+import { Cormorant, Cormorant_Garamond, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,11 +8,18 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const fraunces = Fraunces({
+const cormorantGaramond = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500"],
   style: ["normal", "italic"],
-  variable: "--font-fraunces",
+  variable: "--font-display",
+});
+
+const cormorant = Cormorant({
+  subsets: ["latin"],
+  weight: ["300", "400"],
+  style: ["normal", "italic"],
+  variable: "--font-display-alt",
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -35,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+        className={`${inter.variable} ${cormorantGaramond.variable} ${cormorant.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         {children}
       </body>

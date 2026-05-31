@@ -71,7 +71,7 @@ export function FamilyExplain({ summary, disabled }: FamilyExplainProps) {
         </SectionInfoButton>
       </div>
       {paragraphs.length > 0 && (
-        <div className="type-summary mt-4 rounded-element border-l-[3px] border-l-accent bg-accent-muted p-5">
+        <div className="type-translation mt-4 rounded-element border-l-[3px] border-l-accent bg-accent-muted p-5">
           {paragraphs.map((para, i) => (
             <p key={i} className="mb-4 last:mb-0">
               {para}

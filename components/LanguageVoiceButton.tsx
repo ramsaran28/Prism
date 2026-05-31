@@ -1,13 +1,18 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { stripMarkdown } from "@/lib/formatText";
+import {
+  fetchTtsAudio,
+  getCachedTtsAudio,
+  playTtsBuffer,
+  prefetchTts,
+} from "@/lib/ttsClient";
 
 interface LanguageVoiceButtonProps {
   translatedText: string;
-  /** Active language name — selects Rachel (US) vs Priya (Indian) */
   language: string;
-  /** Changes when user picks a new language — resets playback */
   languageKey: string;
 }
 
@@ -17,8 +22,8 @@ export function LanguageVoiceButton({
   languageKey,
 }: LanguageVoiceButtonProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const cacheKeyRef = useRef("");
-  const cacheAudioRef = useRef("");
+  const objectUrlRef = useRef<string | null>(null);
+  const stopPlaybackRef = useRef<(() => void) | null>(null);
 
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,10 +31,16 @@ export function LanguageVoiceButton({
   const speakText = stripMarkdown(translatedText).trim();
 
   const stopPlayback = useCallback(() => {
+    stopPlaybackRef.current?.();
+    stopPlaybackRef.current = null;
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       audioRef.current = null;
+    }
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
     }
     setPlaying(false);
   }, []);
@@ -37,52 +48,34 @@ export function LanguageVoiceButton({
   useEffect(() => {
     stopPlayback();
     setLoading(false);
-    cacheKeyRef.current = "";
-    cacheAudioRef.current = "";
-  }, [languageKey, speakText, stopPlayback]);
+  }, [languageKey, speakText, language, stopPlayback]);
+
+  useEffect(() => {
+    if (!speakText) return;
+    void prefetchTts(speakText, language);
+  }, [speakText, language, languageKey]);
 
   useEffect(() => {
     return () => stopPlayback();
   }, [stopPlayback]);
 
-  async function fetchAudio(): Promise<string> {
-    const cacheKey = `${language}:${speakText}`;
-    if (cacheKeyRef.current === cacheKey && cacheAudioRef.current) {
-      return cacheAudioRef.current;
-    }
-
-    const res = await fetch("/api/agents/tts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: speakText, language }),
-    });
-
-    const data = await res.json();
-    if (!res.ok || !data.audio) {
-      throw new Error(data.error ?? "TTS failed");
-    }
-
-    cacheKeyRef.current = cacheKey;
-    cacheAudioRef.current = data.audio;
-    return data.audio;
-  }
-
   async function handleClick() {
-    if (!speakText || loading) return;
+    if (!speakText) return;
 
     if (playing) {
       stopPlayback();
       return;
     }
 
-    setLoading(true);
+    const cached = getCachedTtsAudio(language, speakText);
+    if (!cached) setLoading(true);
+
     try {
-      const base64 = await fetchAudio();
-      const audio = new Audio(`data:audio/mpeg;base64,${base64}`);
-      audioRef.current = audio;
-      audio.onended = () => setPlaying(false);
-      audio.onerror = () => setPlaying(false);
-      await audio.play();
+      const buffer = cached ?? (await fetchTtsAudio(speakText, language));
+
+      stopPlaybackRef.current?.();
+      const { stop } = await playTtsBuffer(buffer, audioRef, objectUrlRef);
+      stopPlaybackRef.current = stop;
       setPlaying(true);
     } catch {
       stopPlayback();
@@ -92,16 +85,19 @@ export function LanguageVoiceButton({
   }
 
   let label = "▶ Listen";
-  if (loading) label = "⟳ Loading...";
-  if (playing) label = "⏸ Stop";
+  if (loading) label = "Loading...";
+  else if (playing) label = "⏸ Stop";
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={loading}
-      className="btn-listen disabled:cursor-not-allowed disabled:opacity-60"
+      disabled={loading || !speakText}
+      className="btn-listen inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
     >
+      {loading && (
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+      )}
       {label}
     </button>
   );

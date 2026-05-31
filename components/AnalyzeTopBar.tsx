@@ -6,26 +6,26 @@ export function AnalyzeTopBar() {
       className="flex shrink-0 items-center justify-between bg-sidebar"
       style={{
         height: 56,
-        borderBottom: "0.5px solid #232536",
+        borderBottom: "0.5px solid #32364A",
         padding: "0 28px",
       }}
     >
       <p
         className="md:block"
         style={{
-          fontSize: 15,
+          fontSize: 17,
           fontFamily: "var(--font-inter), Inter, sans-serif",
           fontWeight: 500,
-          color: "#EEEEF0",
+          color: "#E8EAF2",
         }}
       >
         Health Analysis
       </p>
       <p
         style={{
-          fontSize: 11,
+          fontSize: 13,
           fontFamily: "var(--font-inter), Inter, sans-serif",
-          color: "#454760",
+          color: "#8E92A8",
         }}
       >
         Not medical advice. Always consult your doctor.

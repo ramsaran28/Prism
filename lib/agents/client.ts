@@ -21,20 +21,27 @@ export async function callScanAgent(
       mimeType: session.mimeType,
     }),
   });
-  if (!res.ok) throw new Error("SCAN failed");
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error("[callScanAgent] HTTP", res.status, data);
+    throw new Error("SCAN failed");
+  }
   if (data.error) throw new Error(data.error);
   return data as ScanResult;
 }
 
 export async function callRiskAgent(values: LabValue[]): Promise<RiskResult> {
+  const payload = { values: valuesWithPlainNames(values) };
   const res = await fetch("/api/agents/risk", {
     method: "POST",
     headers: JSON_HEADERS,
-    body: JSON.stringify({ values: valuesWithPlainNames(values) }),
+    body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("RISK failed");
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error("[callRiskAgent] HTTP", res.status, data);
+    throw new Error("RISK failed");
+  }
   if (data.error) throw new Error(data.error);
   return data as RiskResult;
 }
@@ -49,8 +56,11 @@ export async function callGuideAgent(risk: RiskResult): Promise<GuideResult> {
       risk,
     }),
   });
-  if (!res.ok) throw new Error("GUIDE failed");
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error("[callGuideAgent] HTTP", res.status, data);
+    throw new Error("GUIDE failed");
+  }
   if (data.error) throw new Error(data.error);
   return data as GuideResult;
 }
@@ -64,10 +74,18 @@ export async function callTranslateAgent(
     headers: JSON_HEADERS,
     body: JSON.stringify({ summary, targetLanguage }),
   });
-  if (!res.ok) throw new Error("TRANSLATE failed");
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error("[callTranslateAgent] HTTP", res.status, data);
+    throw new Error("TRANSLATE failed");
+  }
   if (data.error) throw new Error(data.error);
-  return data.translation as string;
+  const translation = data.translation as string;
+  if (!translation?.trim()) {
+    console.error("[callTranslateAgent] empty translation field", data);
+    throw new Error("TRANSLATE returned empty");
+  }
+  return translation;
 }
 
 export async function streamExplainAgent(
@@ -75,28 +93,31 @@ export async function streamExplainAgent(
   risk: RiskResult,
   onChunk: (text: string) => void
 ): Promise<string> {
+  const payload = {
+    values: valuesWithPlainNames(values),
+    risk,
+  };
+
   const res = await fetch("/api/agents/explain", {
     method: "POST",
     headers: JSON_HEADERS,
-    body: JSON.stringify({
-      values: valuesWithPlainNames(values),
-      risk,
-    }),
+    body: JSON.stringify(payload),
   });
-  if (!res.ok || !res.body) throw new Error("EXPLAIN failed");
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let full = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    full += decoder.decode(value, { stream: true });
-    onChunk(full);
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    console.error("[streamExplainAgent] HTTP", res.status, errText);
+    throw new Error("EXPLAIN failed");
   }
 
-  return full;
+  const text = await res.text();
+  if (!text.trim()) {
+    console.error("[streamExplainAgent] empty response body");
+    throw new Error("EXPLAIN returned empty");
+  }
+
+  onChunk(text);
+  return text;
 }
 
 export async function callScoreAgent(
@@ -111,8 +132,11 @@ export async function callScoreAgent(
       riskData,
     }),
   });
-  if (!res.ok) throw new Error("SCORE failed");
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error("[callScoreAgent] HTTP", res.status, data);
+    throw new Error("SCORE failed");
+  }
   if (data.error) throw new Error(data.error);
   return data as ScoreResult;
 }

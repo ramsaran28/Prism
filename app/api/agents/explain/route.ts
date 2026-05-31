@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { withPlainLanguageRules } from "@/lib/agentPrompts";
+import { stripMarkdown } from "@/lib/formatText";
 import { valuesWithPlainNames } from "@/lib/labValueNames";
 import { getProModel } from "@/lib/gemini";
 
@@ -19,25 +20,10 @@ Risk assessment:
 ${JSON.stringify(risk ?? {}, null, 2)}`
     );
 
-    const result = await model.generateContentStream(prompt);
-    const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder();
-        try {
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            if (text) {
-              controller.enqueue(encoder.encode(text));
-            }
-          }
-          controller.close();
-        } catch (err) {
-          controller.error(err);
-        }
-      },
-    });
+    const result = await model.generateContent(prompt);
+    const summary = stripMarkdown(result.response.text() ?? "");
 
-    return new Response(stream, {
+    return new Response(summary, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache",

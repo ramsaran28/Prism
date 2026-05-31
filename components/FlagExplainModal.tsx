@@ -122,8 +122,8 @@ export function FlagExplainModal({
         className="relative w-[90%]"
         style={{
           maxWidth: 460,
-          background: "#16181F",
-          border: "0.5px solid #232536",
+          background: "#252830",
+          border: "0.5px solid #32364A",
           borderRadius: 16,
           padding: "24px 28px",
         }}
@@ -137,7 +137,7 @@ export function FlagExplainModal({
             type="button"
             onClick={onClose}
             className="shrink-0"
-            style={{ color: "#454760", cursor: "pointer" }}
+            style={{ color: "#8E92A8", cursor: "pointer" }}
             aria-label="Close"
           >
             <X className="h-4 w-4" strokeWidth={1.5} />
@@ -147,10 +147,10 @@ export function FlagExplainModal({
         <h2
           className="mb-4"
           style={{
-            fontFamily: "var(--font-fraunces), Fraunces, serif",
-            fontSize: 16,
+            fontFamily: 'var(--font-display), "Cormorant Garamond", serif',
+            fontSize: 18,
             fontWeight: 400,
-            color: "#EEEEF0",
+            color: "#E8EAF2",
           }}
         >
           {title}
@@ -158,17 +158,17 @@ export function FlagExplainModal({
 
         {loading && !text ? (
           <div className="space-y-3 animate-pulse">
-            <div className="h-3 rounded bg-[#232536]" />
-            <div className="h-3 w-[92%] rounded bg-[#232536]" />
-            <div className="h-3 w-[85%] rounded bg-[#232536]" />
-            <div className="mt-4 h-3 rounded bg-[#232536]" />
-            <div className="h-3 w-[88%] rounded bg-[#232536]" />
+            <div className="h-3 rounded bg-[#32364A]" />
+            <div className="h-3 w-[92%] rounded bg-[#32364A]" />
+            <div className="h-3 w-[85%] rounded bg-[#32364A]" />
+            <div className="mt-4 h-3 rounded bg-[#32364A]" />
+            <div className="h-3 w-[88%] rounded bg-[#32364A]" />
           </div>
         ) : (
           <div
             className="whitespace-pre-wrap"
             style={{
-              fontSize: 15,
+              fontSize: 16,
               fontFamily: "var(--font-inter), Inter, sans-serif",
               fontWeight: 400,
               color: "#8B8FA8",
@@ -186,13 +186,13 @@ export function FlagExplainModal({
           <>
             <div
               className="my-5"
-              style={{ height: 0.5, background: "#232536" }}
+              style={{ height: 0.5, background: "#32364A" }}
             />
             <p
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 fontFamily: "var(--font-inter), Inter, sans-serif",
-                color: "#454760",
+                color: "#8E92A8",
                 lineHeight: 1.6,
               }}
             >
@@ -208,9 +208,9 @@ export function FlagExplainModal({
           className="mt-5 w-full"
           style={{
             padding: 10,
-            background: "#00C896",
+            background: "#4ECBA8",
             color: "#0A0B0F",
-            fontSize: 14,
+            fontSize: 16,
             fontFamily: "var(--font-inter), Inter, sans-serif",
             fontWeight: 500,
             borderRadius: 10,

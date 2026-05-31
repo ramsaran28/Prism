@@ -17,10 +17,10 @@ const CX = GAUGE_SIZE / 2;
 const CY = GAUGE_SIZE / 2;
 
 function getScoreColor(total: number): string {
-  if (total >= 80) return "#00C896";
-  if (total >= 60) return "#F0A500";
-  if (total >= 40) return "#F04060";
-  return "#CC1F3A";
+  if (total >= 80) return "#4ECBA8";
+  if (total >= 60) return "#D4956A";
+  if (total >= 40) return "#C4617A";
+  return "#A84455";
 }
 
 function getScoreLabel(total: number): string {
@@ -31,9 +31,9 @@ function getScoreLabel(total: number): string {
 }
 
 function getCategoryColor(status: CategoryStatus): string {
-  if (status === "good") return "#00C896";
-  if (status === "fair") return "#F0A500";
-  return "#F04060";
+  if (status === "good") return "#4ECBA8";
+  if (status === "fair") return "#D4956A";
+  return "#C4617A";
 }
 
 function displayScore(raw: number): number {
@@ -98,7 +98,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
     >
       <section className="card-surface">
         <div className="section-title-row mb-6">
-          <h2 className="type-h2">Your health score</h2>
+          <h2 className="type-section-title">Your health score</h2>
           <SectionInfoButton
             modalTitle="How your score is calculated"
             ariaLabel="How your score is calculated"
@@ -141,7 +141,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   cy={CY}
                   r={RADIUS}
                   fill="none"
-                  stroke="#232536"
+                  stroke="#32364A"
                   strokeWidth={STROKE_WIDTH}
                 />
                 <circle
@@ -162,7 +162,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                 <div className="inline-flex items-start leading-none">
                   <span
                     style={{
-                      fontSize: 56,
+                      fontSize: 64,
                       fontFamily:
                         'var(--font-mono), "JetBrains Mono", monospace',
                       fontWeight: 700,
@@ -175,7 +175,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   </span>
                   <span
                     style={{
-                      fontSize: 22,
+                      fontSize: 26,
                       fontFamily:
                         'var(--font-mono), "JetBrains Mono", monospace',
                       fontWeight: 500,
@@ -193,7 +193,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   className="text-center uppercase"
                   style={{
                     marginTop: 4,
-                    fontSize: 9,
+                    fontSize: 12,
                     fontFamily: "var(--font-inter), Inter, sans-serif",
                     fontWeight: 500,
                     letterSpacing: "0.8px",
@@ -210,7 +210,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
             <p
               className="mt-4 text-center italic"
               style={{
-                fontSize: 13,
+                fontSize: 15,
                 fontFamily: "var(--font-inter), Inter, sans-serif",
                 color: "#8B8FA8",
                 maxWidth: 200,
@@ -233,17 +233,17 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   <div className="mb-2 flex items-center justify-between">
                     <span
                       style={{
-                        fontSize: 13,
+                        fontSize: 15,
                         fontFamily: "var(--font-inter), Inter, sans-serif",
                         fontWeight: 500,
-                        color: "#EEEEF0",
+                        color: "#E8EAF2",
                       }}
                     >
                       {cat.name}
                     </span>
                     <span
                       style={{
-                        fontSize: 13,
+                        fontSize: 15,
                         fontFamily:
                           'var(--font-mono), "JetBrains Mono", monospace',
                         fontWeight: 600,
@@ -255,7 +255,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   </div>
                   <div
                     className="overflow-hidden rounded-full"
-                    style={{ height: 4, background: "#232536" }}
+                    style={{ height: 4, background: "#32364A" }}
                   >
                     <div
                       style={{
@@ -270,9 +270,9 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   <p
                     className="mt-1.5 italic"
                     style={{
-                      fontSize: 11,
+                      fontSize: 13,
                       fontFamily: "var(--font-inter), Inter, sans-serif",
-                      color: "#454760",
+                      color: "#8E92A8",
                     }}
                   >
                     {cat.oneLineNote}
@@ -287,9 +287,9 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
       <p
         className="mb-5 text-center"
         style={{
-          fontSize: 10,
+          fontSize: 12,
           fontFamily: "var(--font-inter), Inter, sans-serif",
-          color: "#454760",
+          color: "#8E92A8",
         }}
       >
         Estimated wellness snapshot · Not a medical diagnosis

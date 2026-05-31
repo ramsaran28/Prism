@@ -5,7 +5,6 @@ import {
   Bar,
   BarChart,
   Cell,
-  LabelList,
   ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
@@ -13,30 +12,65 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { LabValue, ValueStatus } from "@/lib/types";
+import type { LabValue } from "@/lib/types";
 import {
+  CHART_AXIS_LABELS,
   getChartDomain,
   toChartRows,
   type ChartRow,
 } from "@/lib/valueMetrics";
 
+const ROW_HEIGHT = 52;
+const BAR_SIZE = 20;
+const Y_AXIS_WIDTH = 180;
+
 interface LabValuesChartProps {
   values: LabValue[];
 }
 
-function StatusBadge({ status }: { status: ValueStatus }) {
-  const styles = {
-    normal: "bg-accent/20 text-accent",
-    low: "bg-warning/20 text-warning",
-    high: "bg-danger/20 text-danger",
-  };
-  const labels = { normal: "Normal", low: "Low", high: "High" };
+function wrapLabel(name: string): string[] {
+  const max = 24;
+  if (name.length <= max) return [name];
+  const breakAt = name.lastIndexOf(" ", max);
+  if (breakAt > 8) {
+    return [name.slice(0, breakAt), name.slice(breakAt + 1)];
+  }
+  return [name.slice(0, max), name.slice(max).trim()];
+}
+
+function YAxisTick(props: {
+  x?: string | number;
+  y?: string | number;
+  payload?: { value: string };
+}) {
+  const x = Number(props.x ?? 0);
+  const y = Number(props.y ?? 0);
+  const lines = wrapLabel(String(props.payload?.value ?? ""));
+  const lineHeight = 12 * 1.4;
+
   return (
-    <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${styles[status]}`}
-    >
-      {labels[status]}
-    </span>
+    <g transform={`translate(${x},${y})`}>
+      {lines.map((line, i) => (
+        <text
+          key={i}
+          x={-10}
+          y={0}
+          dy={
+            lines.length === 1
+              ? 4
+              : i === 0
+                ? -(lineHeight / 2) + 4
+                : lineHeight / 2 + 4
+          }
+          textAnchor="end"
+          fill="#9896A8"
+          fontSize={12}
+          style={{ lineHeight: 1.4 }}
+        >
+          {line}
+        </text>
+      ))}
+    </g>
   );
 }
 
@@ -50,51 +84,18 @@ function ChartTooltip({
   if (!active || !payload?.length) return null;
   const row = payload[0].payload;
   return (
-    <div className="rounded-element border border-border bg-[#1a1a1a] px-4 py-3 shadow-lg">
-      <p className="mb-2 font-medium text-text-primary">{row.name}</p>
-      <p className="text-sm text-text-secondary">
-        Your value:{" "}
-        <span className="text-text-primary">{row.valueLabel}</span>
+    <div className="max-w-xs rounded-element border border-border bg-overlay px-4 py-3 shadow-lg">
+      <p className="text-[13px] font-normal text-text-primary">
+        {row.plainName} —{" "}
+        <span className="value-mono">{row.valueLabel}</span>
       </p>
-      <p className="mt-1 text-sm text-text-secondary">
-        Normal range: {row.referenceRange || "—"}
+      <p className="mt-2 text-[13px] leading-relaxed text-text-secondary">
+        {row.warmDetail}
       </p>
-      <div className="mt-2">
-        <StatusBadge status={row.status} />
-      </div>
-      <p className="mt-2 text-xs text-text-secondary">{row.note}</p>
+      <p className="mt-2 text-[13px] font-medium text-text-primary">
+        {row.statusLine}
+      </p>
     </div>
-  );
-}
-
-function ValueEndLabel(
-  props: {
-    x?: number | string;
-    y?: number | string;
-    width?: number | string;
-    height?: number | string;
-    index?: number;
-    chartData: ChartRow[];
-  }
-) {
-  const x = Number(props.x ?? 0);
-  const y = Number(props.y ?? 0);
-  const width = Number(props.width ?? 0);
-  const height = Number(props.height ?? 0);
-  const index = props.index ?? 0;
-  const { chartData } = props;
-  const row = chartData[index];
-  if (!row) return null;
-  return (
-    <text
-      x={x + width + 10}
-      y={y + height / 2}
-      fill="#f5f5f5"
-      fontSize={12}
-      dominantBaseline="middle"
-    >
-      {row.valueLabel}
-    </text>
   );
 }
 
@@ -114,10 +115,8 @@ function MetricCard({
         ? "text-warning"
         : "text-text-primary";
   return (
-    <div className="flex-1 rounded-element border border-border bg-background/60 px-4 py-3 text-center">
-      <p className={`text-2xl font-semibold tabular-nums ${valueClass}`}>
-        {value}
-      </p>
+    <div className="flex-1 rounded-element border border-border bg-input p-5 text-center">
+      <p className={`metric-value ${valueClass}`}>{value}</p>
       <p className="mt-1 text-xs text-text-secondary">{label}</p>
     </div>
   );
@@ -125,8 +124,8 @@ function MetricCard({
 
 export function LabValuesChart({ values }: LabValuesChartProps) {
   const chartData = useMemo(() => toChartRows(values), [values]);
-  const domain = useMemo(() => getChartDomain(chartData), [chartData]);
-  const chartHeight = Math.max(chartData.length * 40, 160);
+  const domain = getChartDomain();
+  const chartHeight = Math.max(chartData.length * ROW_HEIGHT, ROW_HEIGHT);
 
   const total = values.length;
   const normalCount = values.filter((v) => v.status === "normal").length;
@@ -136,8 +135,8 @@ export function LabValuesChart({ values }: LabValuesChartProps) {
 
   return (
     <div className="w-full">
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <MetricCard label="Total values checked" value={total} />
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard label="Key results shown" value={total} />
         <MetricCard label="In normal range" value={normalCount} accent="green" />
         <MetricCard
           label="Need attention"
@@ -147,40 +146,48 @@ export function LabValuesChart({ values }: LabValuesChartProps) {
       </div>
 
       <div
-        className="w-full rounded-element bg-[#111111] p-6"
+        className="lab-chart w-full p-6"
         style={{ minHeight: chartHeight + 48 }}
       >
         <ResponsiveContainer width="100%" height={chartHeight}>
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 8, right: 100, left: 8, bottom: 8 }}
-            barCategoryGap="28%"
+            margin={{ top: 4, right: 16, left: 4, bottom: 28 }}
+            barCategoryGap={12}
+            barGap={0}
           >
             <ReferenceArea
               x1={0}
-              x2={100}
-              fill="#1D9E75"
-              fillOpacity={0.08}
+              x2={20}
+              fill="#4D9FFF"
+              fillOpacity={0.1}
               ifOverflow="extendDomain"
             />
             <ReferenceArea
               x1={20}
               x2={80}
-              fill="#1D9E75"
-              fillOpacity={0.05}
+              fill="#00D4AA"
+              fillOpacity={0.08}
+              ifOverflow="extendDomain"
+            />
+            <ReferenceArea
+              x1={80}
+              x2={100}
+              fill="#FF4D6A"
+              fillOpacity={0.1}
               ifOverflow="extendDomain"
             />
             <ReferenceLine
-              x={0}
-              stroke="#1D9E75"
+              x={20}
+              stroke="#4D9FFF"
               strokeOpacity={0.35}
               strokeWidth={1}
               strokeDasharray="4 4"
             />
             <ReferenceLine
-              x={100}
-              stroke="#1D9E75"
+              x={80}
+              stroke="#FF4D6A"
               strokeOpacity={0.35}
               strokeWidth={1}
               strokeDasharray="4 4"
@@ -188,38 +195,36 @@ export function LabValuesChart({ values }: LabValuesChartProps) {
             <XAxis
               type="number"
               domain={domain}
-              tick={{ fill: "#888888", fontSize: 11 }}
-              axisLine={{ stroke: "#1f1f1f" }}
+              ticks={[0, 50, 100]}
+              tick={{ fill: "#9896A8", fontSize: 11 }}
+              axisLine={{ stroke: "#1E1E2E" }}
               tickLine={false}
-              tickFormatter={(v) => `${v}%`}
+              tickFormatter={(v) => CHART_AXIS_LABELS[v as number] ?? ""}
             />
             <YAxis
               type="category"
               dataKey="name"
-              width={120}
-              tick={{ fill: "#888888", fontSize: 12 }}
+              width={Y_AXIS_WIDTH}
               axisLine={false}
               tickLine={false}
+              tick={YAxisTick}
             />
             <Tooltip
               content={<ChartTooltip />}
-              cursor={{ fill: "rgba(255,255,255,0.04)" }}
+              cursor={{ fill: "rgba(255,255,255,0.03)" }}
+              wrapperStyle={{ zIndex: 20 }}
             />
             <Bar
               dataKey="position"
+              barSize={BAR_SIZE}
               radius={[0, 4, 4, 0]}
               animationDuration={800}
               animationEasing="ease-out"
               isAnimationActive
             >
               {chartData.map((row) => (
-                <Cell key={row.name} fill={row.fill} />
+                <Cell key={row.medicalName} fill={row.fill} />
               ))}
-              <LabelList
-                content={(props) => (
-                  <ValueEndLabel {...props} chartData={chartData} />
-                )}
-              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

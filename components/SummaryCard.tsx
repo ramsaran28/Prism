@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPlainParagraphs, stripSaathiOpener } from "@/lib/formatText";
+import { formatPlainParagraphs, stripPrismOpener } from "@/lib/formatText";
 
 interface SummaryCardProps {
   text: string;
@@ -8,19 +8,17 @@ interface SummaryCardProps {
 }
 
 export function SummaryCard({ text, streaming }: SummaryCardProps) {
-  const cleaned = stripSaathiOpener(text);
+  const cleaned = stripPrismOpener(text);
   const paragraphs = formatPlainParagraphs(cleaned);
 
   return (
-    <section className="rounded-card border border-border bg-card p-6">
-      <h2 className="mb-4 text-lg font-medium text-text-primary">
-        Plain language summary
-      </h2>
-      <div className="text-base leading-[1.8] text-text-primary/90">
+    <section className="card-surface px-6 py-5">
+      <p className="type-card-title mb-4">Plain language summary</p>
+      <div className="type-summary">
         {streaming ? (
           <p className="whitespace-pre-wrap">
             {cleaned}
-            <span className="cursor-blink ml-0.5 inline-block h-4 w-0.5 bg-accent align-middle" />
+            <span className="cursor-blink ml-0.5 inline-block h-4 w-0.5 align-middle" />
           </p>
         ) : (
           paragraphs.map((para, i) => (

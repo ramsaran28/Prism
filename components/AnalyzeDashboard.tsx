@@ -6,12 +6,14 @@ import { AgentStatusPanel } from "./AgentStatusPanel";
 import { AnalyzeTopBar } from "./AnalyzeTopBar";
 import { SeverityBanner } from "./SeverityBanner";
 import { ValueAnalysisSection } from "./ValueAnalysisSection";
+import { BodySystemsMap } from "./BodySystemsMap";
 import { SummaryCard } from "./SummaryCard";
 import { ActionPlanCard } from "./ActionPlanCard";
 import { FamilyExplain } from "./FamilyExplain";
 import { LanguageSection } from "./LanguageSection";
 import { PrivacyFooter } from "./PrivacyFooter";
 import { runAgentsInParallel } from "@/lib/agents/orchestrator";
+import { normalizeLabValues } from "@/lib/labValueNames";
 import { callTranslateAgent } from "@/lib/agents/client";
 import { loadSession, clearSession } from "@/lib/session";
 import type {
@@ -19,6 +21,7 @@ import type {
   AgentStatus,
   GuideResult,
   LabValue,
+  RiskResult,
   SeverityLevel,
 } from "@/lib/types";
 
@@ -33,14 +36,14 @@ const initialStatuses: Record<AgentId, AgentStatus> = {
 export function AnalyzeDashboard() {
   const router = useRouter();
   const started = useRef(false);
-  const [language, setLanguage] = useState("English");
   const [statuses, setStatuses] = useState(initialStatuses);
   const [values, setValues] = useState<LabValue[]>([]);
   const [severity, setSeverity] = useState<SeverityLevel | null>(null);
+  const [risk, setRisk] = useState<RiskResult | null>(null);
   const [summary, setSummary] = useState("");
   const [summaryStreaming, setSummaryStreaming] = useState(false);
   const [translation, setTranslation] = useState<string | null>(null);
-  const [activeLang, setActiveLang] = useState("English");
+  const [activeLang, setActiveLang] = useState("English (US)");
   const [translateLoading, setTranslateLoading] = useState(false);
   const [guide, setGuide] = useState<GuideResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,11 +59,11 @@ export function AnalyzeDashboard() {
       return;
     }
 
-    setLanguage(session.language);
     setActiveLang(session.language);
     setStatuses(initialStatuses);
     setValues([]);
     setSeverity(null);
+    setRisk(null);
     setSummary("");
     setTranslation(null);
     setGuide(null);
@@ -68,8 +71,12 @@ export function AnalyzeDashboard() {
 
     await runAgentsInParallel(session, {
       onStatus: setAgent,
-      onScanResult: (scan) => setValues(scan.values ?? []),
-      onRiskResult: (risk) => setSeverity(risk.severity),
+      onScanResult: (scan) =>
+        setValues(normalizeLabValues(scan.values ?? [])),
+      onRiskResult: (riskResult) => {
+        setRisk(riskResult);
+        setSeverity(riskResult.severity);
+      },
       onExplainStart: () => setSummaryStreaming(true),
       onExplainChunk: setSummary,
       onExplainEnd: () => setSummaryStreaming(false),
@@ -109,52 +116,59 @@ export function AnalyzeDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 md:px-8">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
-        <AnalyzeTopBar language={language} />
+    <div className="flex min-h-screen bg-background">
+      <AgentStatusPanel statuses={statuses} />
 
-        <p className="text-center text-xs text-text-secondary">
-          This is not medical advice. Please consult a qualified doctor.
-        </p>
+      <main className="min-w-0 flex-1 px-4 py-8 md:px-8">
+        <div className="mx-auto flex max-w-5xl flex-col gap-6">
+          <AnalyzeTopBar />
 
-        {error && (
-          <p className="rounded-card border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
-            {error}
-          </p>
-        )}
+          {error && (
+            <p className="rounded-element border border-danger/30 bg-danger-muted px-4 py-3 text-sm text-danger">
+              {error}
+            </p>
+          )}
 
-        <AgentStatusPanel statuses={statuses} />
+          <SeverityBanner severity={severity} />
 
-        <SeverityBanner severity={severity} />
+          {values.length > 0 && (
+            <ValueAnalysisSection
+              values={values}
+              flaggedValues={risk?.flaggedValues ?? []}
+            />
+          )}
 
-        {values.length > 0 && <ValueAnalysisSection values={values} />}
+          {values.length > 0 && <BodySystemsMap values={values} risk={risk} />}
 
-        <SummaryCard text={summary} streaming={summaryStreaming} />
+          <SummaryCard text={summary} streaming={summaryStreaming} />
 
-        <ActionPlanCard guide={guide} />
+          <ActionPlanCard guide={guide} />
 
-        <FamilyExplain summary={summary} disabled={summaryStreaming || !summary} />
+          <FamilyExplain
+            summary={summary}
+            disabled={summaryStreaming || !summary}
+          />
 
-        <LanguageSection
-          translation={translation}
-          activeLanguage={activeLang}
-          selectedLanguage={language}
-          onSwitch={handleLanguageSwitch}
-          loading={translateLoading}
-        />
+          <LanguageSection
+            translation={translation}
+            activeLanguage={activeLang}
+            onSwitch={handleLanguageSwitch}
+            loading={translateLoading}
+          />
 
-        <div className="flex justify-center pt-4">
-          <button
-            type="button"
-            onClick={handleStartOver}
-            className="rounded-element border border-border px-6 py-2.5 text-sm text-text-secondary transition hover:border-accent hover:text-text-primary"
-          >
-            Start over
-          </button>
+          <div className="flex justify-center pt-4">
+            <button
+              type="button"
+              onClick={handleStartOver}
+              className="btn-start-over"
+            >
+              Start over
+            </button>
+          </div>
+
+          <PrivacyFooter />
         </div>
-
-        <PrivacyFooter />
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

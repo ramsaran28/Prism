@@ -13,24 +13,18 @@ export function SeverityBanner({ severity }: SeverityBannerProps) {
   if (!banner) return null;
 
   const styles = {
-    green:
-      "border-accent/40 bg-accent/10 text-accent py-4 px-6 text-sm md:text-base",
-    amber:
-      "border-warning/40 bg-warning/10 text-warning py-4 px-5 text-[15px]",
-    red: "border-danger/40 bg-danger/10 text-danger py-4 px-6 text-sm md:text-base",
+    green: "border-accent-border bg-success-muted text-accent",
+    amber: "border-warning/30 bg-warning-muted text-warning",
+    red: "border-danger/30 bg-danger-muted text-danger",
   };
-
-  const isAmber = banner.color === "amber";
 
   return (
     <div
-      className={`flex items-center gap-3 rounded-card border ${styles[banner.color]}`}
+      className={`severity-banner ${styles[banner.color]}`}
       role="status"
     >
       <AlertCircle className="h-5 w-5 shrink-0 opacity-90" strokeWidth={1.5} aria-hidden />
-      <p className={`flex-1 leading-relaxed ${isAmber ? "" : "text-center sm:text-left"}`}>
-        {banner.message}
-      </p>
+      <p className="flex-1">{banner.message}</p>
     </div>
   );
 }

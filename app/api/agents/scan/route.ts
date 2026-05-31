@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withPlainLanguageRules } from "@/lib/agentPrompts";
 import { getFlashModel, parseJsonFromText } from "@/lib/gemini";
 import type { ScanResult } from "@/lib/types";
 
@@ -13,8 +14,9 @@ export async function POST(req: NextRequest) {
     }
 
     const model = getFlashModel();
-    const prompt =
-      "You are a medical data extractor. Extract every lab value, test name, result, and reference range from this report. Return as JSON only: { \"values\": [{ \"name\": string, \"result\": string, \"unit\": string, \"referenceRange\": string, \"status\": \"normal\"|\"high\"|\"low\" }] }. If a value cannot be determined, omit it. No markdown.";
+    const prompt = withPlainLanguageRules(
+      `Extract every lab value from this report. Return JSON only: { "values": [{ "name": string, "result": string, "unit": string, "referenceRange": string, "status": "normal"|"high"|"low" }] }. For each "name", use the plain English label from the report mapping (e.g. "Oxygen in your blood" not hemoglobin). If a value cannot be determined, omit it. No markdown.`
+    );
 
     const result = await model.generateContent([
       prompt,

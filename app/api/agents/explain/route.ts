@@ -1,18 +1,23 @@
 import { NextRequest } from "next/server";
+import { withPlainLanguageRules } from "@/lib/agentPrompts";
+import { valuesWithPlainNames } from "@/lib/labValueNames";
 import { getProModel } from "@/lib/gemini";
 
 export async function POST(req: NextRequest) {
   try {
     const { values, risk } = await req.json();
+    const plainValues = valuesWithPlainNames(values ?? []);
 
     const model = getProModel();
-    const prompt = `You are Saathi — a warm, caring medical companion. Explain these lab results to someone with no medical background. Do NOT introduce yourself. Never say "Hello" or "I'm Saathi". Start immediately with what is good. Be honest but calm about anything concerning. Use simple words. Never use jargon or markdown formatting. Write in second person ('Your hemoglobin...'). Use plain paragraphs only. Keep it under 150 words.
+    const prompt = withPlainLanguageRules(
+      `You are Prism — a warm, caring companion. Explain these results to someone with no medical background. You may think of yourself as Prism but do NOT introduce yourself. Never open with "Hello" or "I'm Prism". Start with what looks good. Be honest but calm about anything concerning. Write in second person. Plain paragraphs only. Under 150 words.
 
-Lab values:
-${JSON.stringify(values ?? [], null, 2)}
+Results:
+${JSON.stringify(plainValues, null, 2)}
 
 Risk assessment:
-${JSON.stringify(risk ?? {}, null, 2)}`;
+${JSON.stringify(risk ?? {}, null, 2)}`
+    );
 
     const result = await model.generateContentStream(prompt);
     const stream = new ReadableStream({

@@ -1,6 +1,6 @@
 import type { SessionPayload } from "./types";
 
-export const SESSION_KEY = "saathi-session";
+export const SESSION_KEY = "prism-session";
 
 export function saveSession(payload: SessionPayload): void {
   if (typeof window === "undefined") return;

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getFlashModel } from "@/lib/gemini";
+import { withPlainLanguageRules } from "@/lib/agentPrompts";
 import { getLanguageLabel } from "@/lib/languages";
 import { stripMarkdown } from "@/lib/formatText";
+import { getFlashModel } from "@/lib/gemini";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,10 +19,12 @@ export async function POST(req: NextRequest) {
 
     const label = getLanguageLabel(lang);
     const model = getFlashModel();
-    const prompt = `Translate the following medical summary into ${label}. Keep the tone warm, simple, and caring. Do not add or remove any medical information. Use plain text only — no markdown, no asterisks, no headings, no bullet symbols.
+    const prompt = withPlainLanguageRules(
+      `Translate the following summary into ${label}. Keep the tone warm, simple, and caring. Do not add or remove information. Plain text only — no markdown.
 
 Summary:
-${text}`;
+${text}`
+    );
 
     const result = await model.generateContent(prompt);
     return NextResponse.json({

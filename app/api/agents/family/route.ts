@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withPlainLanguageRules } from "@/lib/agentPrompts";
 import { getFlashModel } from "@/lib/gemini";
 
 export async function POST(req: NextRequest) {
@@ -12,10 +13,12 @@ export async function POST(req: NextRequest) {
     }
 
     const model = getFlashModel();
-    const prompt = `Rewrite this medical summary as if explaining to a worried family member with zero medical knowledge. Be warm, reassuring, and use the simplest possible words. Under 80 words.
+    const prompt = withPlainLanguageRules(
+      `Rewrite this summary for a worried family member with zero medical knowledge. Be warm and reassuring. Under 80 words.
 
 Summary:
-${summary}`;
+${summary}`
+    );
 
     const result = await model.generateContent(prompt);
     return NextResponse.json({ familySummary: result.response.text() });

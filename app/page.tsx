@@ -2,7 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Upload } from "lucide-react";
+import { ArrowRight, Shield, Upload } from "lucide-react";
+import { PrismLogo } from "@/components/PrismLogo";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { PrivacyFooter } from "@/components/PrivacyFooter";
 import { fileToBase64, saveSession } from "@/lib/session";
@@ -12,7 +13,7 @@ const ACCEPT = "application/pdf,image/jpeg,image/png,image/jpg";
 export default function HomePage() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [language, setLanguage] = useState("English");
+  const [language, setLanguage] = useState("English (US)");
   const [uploading, setUploading] = useState(false);
 
   async function handleFile(file: File) {
@@ -48,22 +49,22 @@ export default function HomePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-background">
+    <main className="flex min-h-screen flex-col">
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="mb-2 text-sm tracking-wide text-text-secondary">
-            Prism · Saathi
-          </p>
-          <h1 className="mb-6 text-3xl font-semibold leading-tight text-text-primary md:text-5xl">
-            Your report, in words you understand.
+          <div className="mb-8 flex justify-center">
+            <PrismLogo iconSize={32} />
+          </div>
+          <h1 className="type-landing-headline mb-6 whitespace-pre-line">
+            Your health report,{"\n"}in words you understand.
           </h1>
-          <p className="mb-10 text-base leading-relaxed text-text-secondary md:text-lg">
-            Upload your lab report or doctor&apos;s note. Saathi reads it,
+          <p className="type-landing-sub mb-10">
+            Upload your lab report or doctor&apos;s note. Prism reads it,
             explains it simply, and tells you what to do next. Nothing is saved.
             Ever.
           </p>
 
-          <div className="mb-10 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-text-secondary">
+          <div className="card-surface mb-10 inline-flex items-center gap-2 px-5 py-2.5 text-sm text-text-secondary">
             <Shield className="h-4 w-4 text-accent" strokeWidth={1.5} />
             Zero storage. Your report never leaves your session.
           </div>
@@ -86,12 +87,13 @@ export default function HomePage() {
               type="button"
               disabled={uploading}
               onClick={() => inputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-element bg-accent px-8 py-4 text-sm font-medium text-background transition hover:opacity-90 disabled:opacity-60"
+              className="btn-upload disabled:opacity-60"
             >
               <Upload className="h-5 w-5" />
               {uploading ? "Preparing…" : "Upload your report"}
+              <ArrowRight className="btn-upload-arrow h-4 w-4" />
             </button>
-            <p className="text-xs text-text-secondary">PDF, JPG, or PNG</p>
+            <p className="text-xs text-text-tertiary">PDF, JPG, or PNG</p>
           </div>
 
           <p className="text-xs text-text-secondary">

@@ -10,28 +10,21 @@ export function ActionPlanCard({ guide }: ActionPlanCardProps) {
   if (!guide) return null;
 
   return (
-    <section className="rounded-card border border-border bg-card p-6">
-      <h2 className="mb-4 text-lg font-medium text-text-primary">
-        Your action plan
-      </h2>
-      <ol className="mb-6 list-decimal space-y-3 pl-5 text-text-primary/90">
+    <section className="card-surface px-6 py-5">
+      <h2 className="type-h2 mb-4">Your action plan</h2>
+      <ol className="mb-6 list-decimal space-y-3 pl-5">
         {guide.steps.map((step, i) => (
-          <li key={i} className="leading-relaxed">
+          <li key={i} className="action-plan-step -mx-2 rounded-element px-2 py-1">
             {step}
           </li>
         ))}
       </ol>
       {guide.questions.length > 0 && (
         <>
-          <h3 className="mb-3 text-sm font-medium text-text-secondary">
-            Questions for your doctor
-          </h3>
+          <p className="type-card-title mb-3">Questions for your doctor</p>
           <ol className="space-y-3">
             {guide.questions.map((q, i) => (
-              <li
-                key={i}
-                className="list-none rounded-element border border-border border-l-2 border-l-accent bg-card/80 p-3 text-sm leading-relaxed text-text-primary/90"
-              >
+              <li key={i} className="action-plan-question">
                 <span className="mr-2 font-medium text-accent">{i + 1}.</span>
                 {q}
               </li>

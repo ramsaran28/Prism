@@ -13,24 +13,29 @@ export function stripMarkdown(text: string): string {
     .trim();
 }
 
-/** Drop self-intro lines; summary should start with good news. */
-export function stripSaathiOpener(text: string): string {
+/** Drop self-intro lines; summary should start with substance. */
+export function stripPrismOpener(text: string): string {
   const cleaned = stripMarkdown(text);
   const lines = cleaned.split("\n");
   const filtered = lines.filter((line) => {
     const t = line.trim().toLowerCase();
     if (!t) return true;
+    if (/^hello,?\s/i.test(line) && /prism/i.test(line)) return false;
+    if (/^hi,?\s/i.test(line) && /prism/i.test(line)) return false;
+    if (/^i'?m\s+prism/i.test(t)) return false;
+    if (/^my name is prism/i.test(t)) return false;
     if (/^hello,?\s/i.test(line) && /saathi/i.test(line)) return false;
-    if (/^hi,?\s/i.test(line) && /saathi/i.test(line)) return false;
     if (/^i'?m\s+saathi/i.test(t)) return false;
-    if (/^my name is saathi/i.test(t)) return false;
     return true;
   });
   return filtered.join("\n").trim();
 }
 
+/** @deprecated Use stripPrismOpener */
+export const stripSaathiOpener = stripPrismOpener;
+
 export function formatPlainParagraphs(text: string): string[] {
-  return stripSaathiOpener(text)
+  return stripPrismOpener(text)
     .split(/\n\s*\n/)
     .map((p) => p.replace(/\n/g, " ").trim())
     .filter(Boolean);

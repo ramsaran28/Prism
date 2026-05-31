@@ -1,9 +1,14 @@
 import type { LabValue, ValueStatus } from "@/lib/types";
+import {
+  getValueLabel,
+  getWarmDetailMessage,
+  getWarmStatusLine,
+} from "@/lib/labValueNames";
 
 export const STATUS_COLORS: Record<ValueStatus, string> = {
-  normal: "#1D9E75",
-  low: "#EF9F27",
-  high: "#E24B4A",
+  normal: "#00D4AA",
+  low: "#4D9FFF",
+  high: "#FF4D6A",
 };
 
 export function parseNumericResult(result: string): number | null {
@@ -22,7 +27,7 @@ export function parseReferenceRange(
   return { min, max };
 }
 
-/** Position on chart X axis: 0% = range min, 100% = range max (can exceed). */
+/** Position on chart X axis: 0 = range min, 100 = range max. */
 export function getChartPosition(value: LabValue): number {
   const num = parseNumericResult(value.result);
   const range = parseReferenceRange(value.referenceRange);
@@ -31,45 +36,45 @@ export function getChartPosition(value: LabValue): number {
   return ((num - range.min) / span) * 100;
 }
 
-export function getStatusNote(status: ValueStatus): string {
-  switch (status) {
-    case "normal":
-      return "Within normal range";
-    case "low":
-      return "Slightly below normal range";
-    case "high":
-      return "Above normal range";
-  }
-}
-
 export function formatValueLabel(value: LabValue): string {
   const unit = value.unit ? ` ${value.unit}` : "";
   return `${value.result}${unit}`;
 }
 
 export type ChartRow = LabValue & {
+  medicalName: string;
+  plainName: string;
   position: number;
   fill: string;
-  note: string;
+  warmDetail: string;
+  statusLine: string;
   valueLabel: string;
 };
 
 export function toChartRows(values: LabValue[]): ChartRow[] {
-  return values.map((v) => ({
-    ...v,
-    position: getChartPosition(v),
-    fill: STATUS_COLORS[v.status],
-    note: getStatusNote(v.status),
-    valueLabel: formatValueLabel(v),
-  }));
+  return values.map((v) => {
+    const plainName = getValueLabel(v);
+    return {
+      ...v,
+      medicalName: v.medicalName ?? v.name,
+      name: plainName,
+      plainName,
+      position: getChartPosition(v),
+      fill: STATUS_COLORS[v.status],
+      warmDetail: getWarmDetailMessage(plainName, v.status),
+      statusLine: getWarmStatusLine(v.status),
+      valueLabel: formatValueLabel(v),
+    };
+  });
 }
 
-export function getChartDomain(rows: ChartRow[]): [number, number] {
-  if (!rows.length) return [-5, 105];
-  const positions = rows.map((r) => r.position);
-  const min = Math.min(...positions, 0);
-  const max = Math.max(...positions, 100);
-  const pad = 8;
-  return [Math.floor(min - pad), Math.ceil(max + pad)];
+/** Fixed scale: 0 = too low, 50 = normal zone center, 100 = too high. */
+export function getChartDomain(): [number, number] {
+  return [0, 100];
 }
 
+export const CHART_AXIS_LABELS: Record<number, string> = {
+  0: "Too Low",
+  50: "Normal Zone",
+  100: "Too High",
+};

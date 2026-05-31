@@ -1,7 +1,10 @@
 export type ValueStatus = "normal" | "high" | "low";
 
 export interface LabValue {
+  /** Display name (plain English when set after scan). */
   name: string;
+  /** Original report label when different from `name`. */
+  medicalName?: string;
   result: string;
   unit: string;
   referenceRange: string;

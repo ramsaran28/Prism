@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withPlainLanguageRules } from "@/lib/agentPrompts";
+import { valuesWithPlainNames } from "@/lib/labValueNames";
 import { getFlashModel, parseJsonFromText } from "@/lib/gemini";
 import type { RiskResult, ScanResult } from "@/lib/types";
 
@@ -15,11 +17,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const plainValues = valuesWithPlainNames(values);
     const model = getFlashModel();
-    const prompt = `You are a medical risk assessor. Given these lab values, determine overall severity. Return JSON only: { "severity": "normal"|"moderate"|"urgent", "summary": string, "flaggedValues": [{ "name": string, "reason": string }] }. Be calm and measured — urgent only for genuinely concerning patterns.
+    const prompt = withPlainLanguageRules(
+      `Assess overall health from these results. Return JSON only: { "severity": "normal"|"moderate"|"urgent", "summary": string, "flaggedValues": [{ "name": string, "reason": string }] }. Use plain English names only in "name" and "reason". Be calm — urgent only for genuinely concerning patterns.
 
-Lab values:
-${JSON.stringify(values, null, 2)}`;
+Results:
+${JSON.stringify(plainValues, null, 2)}`
+    );
 
     const result = await model.generateContent(prompt);
     const parsed = parseJsonFromText<RiskResult>(result.response.text());

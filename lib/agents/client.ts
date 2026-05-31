@@ -1,3 +1,4 @@
+import { valuesWithPlainNames } from "@/lib/labValueNames";
 import type { GuideResult, LabValue, RiskResult, ScanResult } from "@/lib/types";
 import type { SessionPayload } from "@/lib/types";
 
@@ -24,7 +25,7 @@ export async function callRiskAgent(values: LabValue[]): Promise<RiskResult> {
   const res = await fetch("/api/agents/risk", {
     method: "POST",
     headers: JSON_HEADERS,
-    body: JSON.stringify({ values }),
+    body: JSON.stringify({ values: valuesWithPlainNames(values) }),
   });
   if (!res.ok) throw new Error("RISK failed");
   const data = await res.json();
@@ -71,7 +72,10 @@ export async function streamExplainAgent(
   const res = await fetch("/api/agents/explain", {
     method: "POST",
     headers: JSON_HEADERS,
-    body: JSON.stringify({ values, risk }),
+    body: JSON.stringify({
+      values: valuesWithPlainNames(values),
+      risk,
+    }),
   });
   if (!res.ok || !res.body) throw new Error("EXPLAIN failed");
 

@@ -4,7 +4,7 @@ export function PrivacyFooter({ className = "" }: { className?: string }) {
       className={`border-t border-border py-8 text-center text-sm text-text-secondary ${className}`}
     >
       <p>
-        Saathi never stores your data. When you close this tab, everything is
+        Prism never stores your data. When you close this tab, everything is
         gone.
       </p>
     </footer>

@@ -14,6 +14,7 @@ import { LanguageSection } from "./LanguageSection";
 import { HealthScoreCard } from "./HealthScoreCard";
 import { InfoModalProvider } from "./InfoModalContext";
 import { PrivacyFooter } from "./PrivacyFooter";
+import { DownloadSummaryButton } from "./DownloadSummaryButton";
 import { runAgentsInParallel } from "@/lib/agents/orchestrator";
 import { normalizeLabValues } from "@/lib/labValueNames";
 import { callTranslateAgent } from "@/lib/agents/client";
@@ -257,14 +258,35 @@ export function AnalyzeDashboard() {
                 />
               </div>
 
-              <div className="flex justify-center" style={{ marginTop: 48, marginBottom: 48 }}>
-                <button
-                  type="button"
-                  onClick={handleStartOver}
-                  className="btn-start-over"
-                >
-                  Start over
-                </button>
+              <div
+                className="flex flex-col items-center gap-3"
+                style={{ marginTop: 48, marginBottom: 48 }}
+              >
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                  <DownloadSummaryButton
+                    healthScore={healthScore}
+                    summary={summary}
+                    guide={guide}
+                    severity={severity}
+                    agentsReady={
+                      statuses.explain === "done" &&
+                      statuses.guide === "done" &&
+                      statuses.score === "done" &&
+                      statuses.risk === "done"
+                    }
+                    disabled={summaryStreaming}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleStartOver}
+                    className="btn-start-over"
+                  >
+                    Start over
+                  </button>
+                </div>
+                <p className="text-center text-[12px] text-text-tertiary">
+                  Downloaded PDFs are not stored by Prism
+                </p>
               </div>
 
               <PrivacyFooter />

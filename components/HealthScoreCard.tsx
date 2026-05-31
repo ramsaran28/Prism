@@ -141,7 +141,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   cy={CY}
                   r={RADIUS}
                   fill="none"
-                  stroke="#32364A"
+                  stroke="var(--border)"
                   strokeWidth={STROKE_WIDTH}
                 />
                 <circle
@@ -212,7 +212,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
               style={{
                 fontSize: 15,
                 fontFamily: "var(--font-inter), Inter, sans-serif",
-                color: "#8B8FA8",
+                color: "var(--text-tertiary)",
                 maxWidth: 200,
               }}
             >
@@ -236,7 +236,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                         fontSize: 15,
                         fontFamily: "var(--font-inter), Inter, sans-serif",
                         fontWeight: 500,
-                        color: "#E8EAF2",
+                        color: "var(--text-primary)",
                       }}
                     >
                       {cat.name}
@@ -255,7 +255,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                   </div>
                   <div
                     className="overflow-hidden rounded-full"
-                    style={{ height: 4, background: "#32364A" }}
+                    style={{ height: 4, background: "var(--border)" }}
                   >
                     <div
                       style={{
@@ -272,7 +272,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
                     style={{
                       fontSize: 13,
                       fontFamily: "var(--font-inter), Inter, sans-serif",
-                      color: "#8E92A8",
+                      color: "var(--text-tertiary)",
                     }}
                   >
                     {cat.oneLineNote}
@@ -289,7 +289,7 @@ export function HealthScoreCard({ score }: HealthScoreCardProps) {
         style={{
           fontSize: 12,
           fontFamily: "var(--font-inter), Inter, sans-serif",
-          color: "#8E92A8",
+          color: "var(--text-tertiary)",
         }}
       >
         Estimated wellness snapshot · Not a medical diagnosis

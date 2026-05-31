@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Shield, Upload } from "lucide-react";
 import { PrismLogo } from "@/components/PrismLogo";
 import { PrivacyFooter } from "@/components/PrivacyFooter";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { fileToBase64, saveSession } from "@/lib/session";
 
 const ACCEPT = "application/pdf,image/jpeg,image/png,image/jpg";
@@ -47,7 +48,10 @@ export default function HomePage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col">
+    <main className="relative flex min-h-screen flex-col">
+      <div className="absolute right-6 top-6 z-50">
+        <ThemeToggle />
+      </div>
       <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mb-8 flex justify-center">

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { PrismIcon } from "./PrismIcon";
 import { PrismLogo } from "./PrismLogo";
+import { ThemeToggle } from "./ThemeToggle";
 
 const PROBLEM_CARDS = [
   {
@@ -178,34 +179,21 @@ export function AboutPage() {
       className="min-h-screen transition-opacity duration-300"
       style={{ opacity: visible ? 1 : 0 }}
     >
-      <header
-        style={{
-          borderBottom: "0.5px solid #32364A",
-          padding: "16px 40px",
-        }}
-      >
-        <div className="flex items-center justify-between">
+      <header className="border-b border-border" style={{ padding: "16px 40px" }}>
+        <div className="flex items-center justify-between gap-4">
           <Link href="/">
             <PrismLogo />
           </Link>
-          <Link
-            href="/"
-            className="flex items-center gap-2 transition-colors duration-150"
-            style={{
-              fontSize: 14,
-              fontFamily: "var(--font-inter), Inter, sans-serif",
-              color: "#8B8FA8",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#E8EAF2";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#8B8FA8";
-            }}
-          >
-            <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
-            Back to app
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-[14px] text-text-tertiary transition-colors duration-150 hover:text-text-primary"
+            >
+              <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
+              Back to app
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

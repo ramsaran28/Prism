@@ -79,27 +79,47 @@ function statusLabel(status: AgentStatus): string {
 }
 
 function statusTextColor(status: AgentStatus): string {
-  if (status === "waiting") return "#3E4260";
-  if (status === "running") return "#D4956A";
-  return "#4ECBA8";
+  if (status === "waiting") return "var(--border-hover)";
+  if (status === "running") return "var(--warning)";
+  return "var(--accent)";
 }
 
 function agentItemColors(status: AgentStatus, isActive: boolean) {
   if (isActive) {
     return {
-      icon: status === "waiting" ? "#3E4260" : status === "running" ? "#D4956A" : "#4ECBA8",
-      name: "#E8EAF2",
-      bg: "#252830",
-      border: "#4ECBA8",
+      icon:
+        status === "waiting"
+          ? "var(--border-hover)"
+          : status === "running"
+            ? "var(--warning)"
+            : "var(--accent)",
+      name: "var(--text-primary)",
+      bg: "var(--card)",
+      border: "var(--accent)",
     };
   }
   if (status === "waiting") {
-    return { icon: "#3E4260", name: "#8E92A8", bg: "transparent", border: "transparent" };
+    return {
+      icon: "var(--border-hover)",
+      name: "var(--text-tertiary)",
+      bg: "transparent",
+      border: "transparent",
+    };
   }
   if (status === "running") {
-    return { icon: "#D4956A", name: "#E8EAF2", bg: "transparent", border: "transparent" };
+    return {
+      icon: "var(--warning)",
+      name: "var(--text-primary)",
+      bg: "transparent",
+      border: "transparent",
+    };
   }
-  return { icon: "#4ECBA8", name: "#E8EAF2", bg: "transparent", border: "transparent" };
+  return {
+    icon: "var(--accent)",
+    name: "var(--text-primary)",
+    bg: "transparent",
+    border: "transparent",
+  };
 }
 
 export function AgentStatusPanel({
@@ -154,7 +174,7 @@ export function AgentStatusPanel({
   return (
     <aside
       className="flex w-[220px] shrink-0 flex-col bg-sidebar"
-      style={{ borderRight: "0.5px solid #32364A" }}
+      style={{ borderRight: "0.5px solid var(--border)" }}
       aria-label="Analysis progress"
     >
       <div
@@ -194,21 +214,22 @@ export function AgentStatusPanel({
                   style={{
                     padding: "10px 14px",
                     borderRadius: 10,
-                    background: isHovered || isActive ? "#252830" : colors.bg,
-                    borderLeft: `2px solid ${isHovered || isActive ? "#4ECBA8" : colors.border}`,
+                    background:
+                      isHovered || isActive ? "var(--card-hover)" : colors.bg,
+                    borderLeft: `2px solid ${isHovered || isActive ? "var(--accent)" : colors.border}`,
                     cursor: "pointer",
                   }}
                 >
                   <Icon
                     className="h-4 w-4 shrink-0"
-                    style={{ color: isHovered ? "#4ECBA8" : colors.icon }}
+                    style={{ color: isHovered ? "var(--accent)" : colors.icon }}
                     strokeWidth={1.5}
                     aria-hidden
                   />
                   <span
                     className="sidebar-agent-name min-w-0 flex-1"
                     style={{
-                      color: isHovered ? "#E8EAF2" : colors.name,
+                      color: isHovered ? "var(--text-primary)" : colors.name,
                     }}
                   >
                     {name}
@@ -231,29 +252,18 @@ export function AgentStatusPanel({
         <div
           style={{
             height: 0.5,
-            background: "#32364A",
+            background: "var(--border)",
             margin: "12px 8px",
           }}
         />
 
         <Link
           href="/about"
-          className="flex items-center gap-2.5 transition-all duration-[120ms] ease-in-out"
+          className="sidebar-about-nav flex items-center gap-2.5 transition-all duration-[120ms] ease-in-out"
           style={{
             padding: "10px 14px",
             borderRadius: 10,
             borderLeft: "2px solid transparent",
-            color: "#8E92A8",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#252830";
-            e.currentTarget.style.borderLeftColor = "#4ECBA8";
-            e.currentTarget.style.color = "#E8EAF2";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderLeftColor = "transparent";
-            e.currentTarget.style.color = "#8E92A8";
           }}
         >
           <BookOpen className="h-4 w-4 shrink-0" strokeWidth={1.5} />
@@ -264,8 +274,8 @@ export function AgentStatusPanel({
       <div className="p-2">
         <div
           style={{
-            background: "#4ECBA808",
-            border: "0.5px solid #4ECBA825",
+            background: "var(--accent-dim)",
+            border: "0.5px solid var(--accent-border)",
             borderRadius: 8,
             padding: "10px 12px",
             margin: 8,
@@ -274,7 +284,7 @@ export function AgentStatusPanel({
           <div className="flex items-center gap-2">
             <ShieldCheck
               className="h-[14px] w-[14px] shrink-0"
-              style={{ color: "#4ECBA8" }}
+              style={{ color: "var(--accent)" }}
               strokeWidth={1.5}
             />
             <span className="sidebar-privacy-title">Zero data stored</span>

@@ -1,82 +1,120 @@
-# Prism — Medical Intelligence
+# ⟁ Prism — Medical Intelligence
 
-> Your health report, in words you understand.
+> **Your health report, in words you understand.**
 
-Prism is a medical report companion that makes 
-health data accessible to everyone — regardless 
-of language, literacy, or medical background.
-
-Upload any lab report or doctor's note. 
-Prism reads it, explains it simply, and tells 
-you what to do next. In your language. 
-Read aloud in your voice. Nothing is saved. Ever.\
-
-Link : https://prism-sigma-five.vercel.app
+🔗 **Live app:** https://prism-sigma-five.vercel.app
 
 ---
 
-## The Problem
+## The Problem We're Solving
 
-Every year, billions of lab reports are handed 
-to patients who have no idea what they mean. 
-Most people either panic or ignore them entirely.
+Every year, over **2 billion lab reports** are handed to patients who have no idea what they mean.
 
-The people most affected are elderly patients, 
-rural communities, and the 1.5 billion people 
-who don't speak medical English.
+Most people stare at abbreviations like HbA1c, eGFR, LDL, MCHC — and either panic or put the paper in a drawer. The worry stays. The confusion stays. The questions never get asked.
 
-Medical literacy shouldn't be a privilege.
+**The people most affected:**
+-  Elderly patients who didn't grow up with medical literacy
+-  1.5 billion people who don't speak medical English
+-  Rural communities with limited access to follow-up care
+-  Immigrant families navigating foreign healthcare systems
+-  Anyone who can't afford a second opinion
+
+Doctor appointments are 12 minutes long. There's no time to explain every value. Patients leave with more questions than answers — and nowhere to go.
+
+**Medical literacy has always been a privilege. Prism changes that.**
 
 ---
 
 ## What Prism Does
 
-### 6 Specialized Gemini Agents
+Upload any lab report or doctor's note — PDF, image, or photo of a handwritten note. In under 15 seconds, Prism:
 
-| Agent | Role |
-|-------|------|
-| SCAN | Reads every value using Gemini's native multimodal vision |
-| RISK | Scores severity with confidence levels |
-| EXPLAIN | Writes plain language summary — warm, jargon-free |
-| TRANSLATE | Converts to 100+ languages |
-| GUIDE | Creates personal action plan + doctor questions |
-| SCORE | Calculates overall health score out of 100 |
+-  Reads every value using Gemini's native multimodal vision
+-  Explains everything in warm, plain everyday language
+-  Shows you a health score out of 100
+-  Highlights which organs and body systems are affected
+-  Tells you exactly what to do next
+-  Translates everything into your language and reads it aloud
+-  Generates questions to bring to your next doctor's appointment
+-  Deletes everything when you close the tab
 
-Agents run in a directed dependency pipeline:
-SCAN → RISK + EXPLAIN → GUIDE + SCORE + TRANSLATE
+**Zero jargon. Zero storage. Zero fear.**
 
 ---
 
-## Features
+## How It Works — The 6-Agent Gemini Pipeline
 
-- **Multimodal PDF reading** — Gemini reads 
-  lab reports natively, no OCR preprocessing
-- **Plain English** — every medical term 
-  renamed to words anyone understands
-- **Health score** — overall wellness score 
-  out of 100 with 4 category breakdown
-- **Interactive body map** — organs highlighted 
-  based on actual report values
-- **100+ languages** — full translation with 
-  ElevenLabs voice readout
-- **Confidence scoring** — AI explains how 
-  certain it is about each finding
-- **"Why was this flagged?"** — explainable AI 
-  for every flagged value
-- **Explain to my family** — simplified version 
-  to share with loved ones
-- **Zero storage** — nothing saved, ever
+Prism doesn't make one API call. It runs **six specialized Gemini agents in a directed dependency pipeline** — each with one job, done well.
+
+
+| # | Agent | Role | What it produces |
+|---|-------|------|-----------------|
+| 01 | **SCAN** | Reads every value, unit, and reference range from the report using Gemini's native multimodal vision — PDFs, images, even handwritten notes. No OCR. No preprocessing. | Structured JSON of all lab values |
+| 02 | **RISK** | Identifies flagged values, scores severity, and calculates a **confidence level** based on correlated markers. 3 cardiovascular markers flagged together = 94% confidence. | Risk assessment with confidence scores |
+| 03 | **EXPLAIN** | Writes a plain language summary — warm, honest, jargon-free. Always starts with what's good. Every medical term replaced with plain English. | Human-readable health summary |
+| 04 | **TRANSLATE** | Converts the summary into any of 100+ languages while keeping the same caring tone. | Translated summary in chosen language |
+| 05 | **GUIDE** | Creates a personal action plan and generates specific questions to bring to the next doctor's appointment. | Action steps + doctor questions |
+| 06 | **SCORE** | Calculates an overall health score out of 100, broken into 4 categories: Heart, Metabolic, Nutritional, and Organ health. | Wellness score with category breakdown |
+
+**This is not a chatbot. This is a directed intelligence pipeline.**
+
+---
+
+## Key Features
+
+###  Explainable AI
+Every flagged value has a **"Why?"** button that calls Gemini to explain in plain words exactly why that value was flagged, what it means for that specific patient's combination of results, and what they can do about it.
+
+###  Interactive Body Map
+Lab values are mapped to body systems. Organs glow based on severity — red for critical, amber for attention needed, green for healthy. Click any organ to see the specific values affecting it.
+
+###  Health Score Out of 100
+Not just a number — a breakdown across 4 body systems with plain English notes for each. Animated gauge, category bars, and an encouraging message no matter the score.
+
+###  100+ Language Support
+Full translation powered by Gemini 2.5 Flash. Voice readout powered by ElevenLabs — emotionally tuned based on severity. Calmer and steadier for critical findings, warmer for healthy results.
+
+###  Explain to My Family
+One click generates a simplified version written for someone with zero medical background — something to screenshot and send to a worried parent or partner.
+
+###  Zero Storage Architecture
+Nothing is logged. Nothing is retained. Your report is read in your browser session, analyzed by Gemini, and the response comes back to you. When you close the tab, everything is gone permanently.
 
 ---
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14, TypeScript, Tailwind CSS
-- **AI:** Google Gemini 2.5 Flash
-- **Voice:** ElevenLabs eleven_turbo_v2_5
-- **Charts:** Recharts
-- **Icons:** Lucide React
-- **Deployment:** Vercel
+### Frontend
+| Technology | Purpose |
+|-----------|---------|
+| Next.js 14 (App Router) | Full-stack React framework |
+| TypeScript | Type-safe codebase (92.5% of repo) |
+| Tailwind CSS | Utility-first styling |
+| Recharts | Interactive health value charts |
+| Lucide React | Icon system |
+| jsPDF | Client-side PDF generation |
+
+### AI & Intelligence
+| Technology | Purpose |
+|-----------|---------|
+| Google Gemini 2.5 Flash | 6-agent pipeline, multimodal PDF vision, streaming, structured JSON, translation |
+| ElevenLabs eleven_turbo_v2_5 | Multilingual voice synthesis, emotionally tuned |
+| ElevenLabs eleven_multilingual_v2 | Fallback for extended language support |
+
+### Architecture
+| Principle | Implementation |
+|-----------|---------------|
+| Directed agent pipeline | SCAN → RISK/EXPLAIN → GUIDE/SCORE/TRANSLATE |
+| Zero database | Fully stateless — no server storage of any kind |
+| Streaming responses | Token-by-token Gemini streaming for live feel |
+| Client-side PDF | jsPDF generates entirely in browser, no server call |
+| Confidence scoring | Correlated marker analysis in RISK agent |
+
+### Deployment
+| Technology | Purpose |
+|-----------|---------|
+| Vercel | Zero-config Next.js deployment |
+| GitHub | Version control |
 
 ---
 
@@ -87,32 +125,44 @@ git clone https://github.com/ramsaran28/Prism
 cd Prism
 npm install
 cp .env.example .env.local
-# Add your API keys to .env.local
+```
+
+Add your API keys to `.env.local`:
+```
+GEMINI_API_KEY=your_gemini_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_key_here
+```
+
+```bash
 npm run dev
 ```
 
-## Environment Variables
+Open `http://localhost:3000`
 
 ---
 
-## Privacy
+## Privacy Commitment
 
-Prism never stores your data. Your report is 
-read in your browser session, analyzed by 
-Gemini, and the response comes back to you. 
-Nothing is logged. Nothing is retained. 
-When you close the tab, everything is gone.
+Prism was designed from day one with zero storage.
 
----
+-  No user accounts
+-  No database
+-  No server logs
+-  No cookies (beyond session)
+-  Everything deleted when tab closes
 
-## Built at QuackHacks
-
-Built in one night at QuackHacks 3.
-Submitted to Google (Gemini) and ElevenLabs tracks.\
-Authors:\
-Ram Saran Venkatasalapathy\
-Jayasnehasree Sannidhi
+Your medical data is the most personal thing there is. It deserves to be treated that way.
 
 ---
 
-*Not medical advice. Always consult your doctor.*
+## Built At QuackHacks 3
+
+Built in one night at QuackHacks 3 — submitted to the **Google (Gemini)** and **ElevenLabs** sponsor tracks.
+
+**Team:**
+- Ram Saran Venkatasalapathy
+- Jayasnehasree Sannidhi
+
+---
+
+> *This is not medical advice. Always consult a qualified doctor.*
